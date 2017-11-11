@@ -16,7 +16,7 @@ Route::group(['namespace' => 'Admin'],function ($router)
     $router->get('/', 'AdminHomeController@index');
 });
 Auth::routes();
-//物业端登录提醒
+//物业端登录提醒a
 Route::view('/info', 'error',['error'=>'服务已经关闭或者还没通过审核,请联系服务商']);
 Route::view('/check', 'merchant.check',['code_url'=>url('/admin/oauth?admin_id=1')]);
 Route::view('/error', 'error',['error'=>'系统异常']);
