@@ -529,4 +529,27 @@ class RoomInfoController extends BaseController{
             "msg"=>"删除失败".$error.$line
         ]);
     }
+
+    public function ceshi(Request $request){
+        //获取物业公司主账号id
+        $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
+        //获取物业公司授权token
+        $app_auth_token=Company_info::where('merchant_id',$merchant_id)->where('status',1)->select('app_auth_token')->first()->app_auth_token;
+        $aop = $this->AopClient ();$aop = $this->AopClient ();
+        $aop->method="alipay.eco.cplife.roominfo.delete";
+        $requests = new AlipayEcoCplifeRoominfoDeleteRequest ();
+        $out_room_id=RoomInfo::where('community_id','A4K36WR905001')->get();
+        foreach($out_room_id as $k=>$v){
+            $room_info_set[$k]=$v->out_room_id;
+        }
+        $out_room_id=json_encode($room_info_set);
+        $batch_id=date("YmdHis").time().rand(10000,99999);
+        $requests->setBizContent("{" .
+            "\"batch_id\":\"".$batch_id."\"," .
+            "\"community_id\":\"A4K36WR905001\"," .
+            "      \"out_room_id_set\":".$out_room_id .
+            "  }");
+        $result = $aop->execute ( $requests,"",$app_auth_token);
+        dd($result);
+    }
 }

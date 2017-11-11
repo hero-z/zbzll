@@ -41,43 +41,40 @@
                             <div class="input-group">
                                 <select name="bill_cost_type" id="bill_cost_type" style="width:250px;">
                                     <option value="" >请选择费用类型</option>
-                                    @if($merchants)
-                                        @foreach($merchants as $v)
-                                            <option value="{{$v->id}}"  @if(isset($mid)&&$mid==$v->id) selected @endif >{{$v->name}}</option>
-                                        @endforeach
-                                    @endif
+                                    <option value="1" @if($bill_cost_type&&$bill_cost_type=='1') selected @endif >物业费</option>
+                                    <option value="2" @if($bill_cost_type&&$bill_cost_type=='2') selected @endif >物业费公摊</option>
                                 </select>
                                 <select name="bill_type" id="bill_type" style="width:250px;">
                                     <option value="" >请选择支付方式</option>
-                                    @if($communityInfo)
-                                        @foreach($communityInfo as $v)
-                                            <option value="{{$v->out_community_id}}"  @if(isset($out_community_id)&&$out_community_id==$v->out_community_id) selected @endif >{{$v->community_name}}</option>
-                                        @endforeach
-                                    @endif
+                                    <option value="1" @if($bill_type&&$bill_type=='1') selected @endif >物业官方支付宝</option>
+                                    <option value="2" @if($bill_type&&$bill_type=='2') selected @endif >现金</option>
                                 </select>
                                 <select name="bill_status" id="bill_status" style="width:250px;">
                                     <option value="" >请选择账单状态</option>
-                                    @if($communityInfo)
-                                        @foreach($communityInfo as $v)
-                                            <option value="{{$v->out_community_id}}"  @if(isset($out_community_id)&&$out_community_id==$v->out_community_id) selected @endif >{{$v->community_name}}</option>
-                                        @endforeach
-                                    @endif
+                                    <option value="1" @if($bill_status&&$bill_status=='1') selected @endif >已同步</option>
+                                    <option value="2" @if($bill_status&&$bill_status=='2') selected @endif >未同步</option>
+                                    <option value="3" @if($bill_status&&$bill_status=='3') selected @endif >线下结算审核中</option>
+                                    <option value="4" @if($bill_status&&$bill_status=='4') selected @endif >已结算</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
                 <button type="submit" id="'submit" class="btn btn-outline btn-primary" style="margin-left: 10px">筛选</button>
+                <button type="button" onclick="exportdata()" class="btn btn-outline btn-success" style="margin-left: 10px">导出Excel</button>
 
             </form>
         </div>
         <div class="col-sm-3">
             <div class="ibox ">
-                <div class="form-group" style="float: right;width: 60%;height: 30%;margin-top: 30px" >
-                    <small style="color: green;">总金额(元)</small>
-                    <h1 class="no-margins" style="color: #be2924;">40 886,200</h1>
-
-                </div>
+                <span style="color: green;font-size: 14px;display: block;margin-top: 30px">
+                    总金额(元):
+                    <span id="totalje" style="font-size: 24px;color: #be2924;margin-left: 20px">计算中...</span>
+                </span>
+                <span style="color: green;font-size: 14px;display: block;">
+                    条数:
+                    <span style="font-size: 24px;color: #be2924;margin-left: 20px">@if(isset($count)){{$count}}@endif</span>
+                </span>
             </div>
         </div>
     </div>
@@ -88,6 +85,7 @@
                     <table class="table table-striped table-bordered table-hover dataTables-example">
                         <thead>
                         <tr>
+                            <th >所属员工</th>
                             <th >所属小区</th>
                             <th >房间号</th>
                             <th >金额</th>
@@ -104,12 +102,39 @@
                         @if(isset($lists)&&!$lists->isEmpty())
                             @foreach($lists as $v )
                                 <tr class="gradeA">
+                                    <td>{{$v->merchant_name}}</td>
                                     <td>{{$v->community_name}}</td>
                                     <td>{{$v->room}}</td>
                                     <td>{{$v->bill_entry_amount}}</td>
-                                    <td>{{$v->type}}</td>
-                                    <td>{{$v->cost_type}}</td>
-                                    <td>{{$v->bill_status}}</td>
+                                    <td>
+                                        @if($v->type=='alipay')
+                                            物业官方支付宝
+                                        @elseif($v->type=='money')
+                                            现金
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($v->cost_type=='property_fee')
+                                            物业费
+                                        @endif
+                                        @if($v->cost_type=='public_property_fee')
+                                            物业费公摊
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($v->bill_status=="ONLINE")
+                                            已同步
+                                        @endif
+                                        @if($v->bill_status=="NONE")
+                                            未同步
+                                        @endif
+                                        @if($v->bill_status=="UNDERREVIEW"||$v->bill_status=="ONLINE_UNDERREVIEW")
+                                            线下结算审核中
+                                        @endif
+                                        @if($v->bill_status=="TRADE_SUCCESS")
+                                            已结算
+                                        @endif
+                                    </td>
                                     <td>{{$v->acct_period}}</td>
                                     <td>{{$v->deadline}}</td>
                                     <td>{{$v->remark_str}}</td>
@@ -151,10 +176,41 @@
                 $('#bill_type').chosen();
                 $('#bill_status').chosen();
             }
-            $("body").css("overflow-y","scroll")
+            $("body").css("overflow-y","scroll");
+            $.post("{{url('merchant/billquery')}}", {
+                    _token: "{{csrf_token()}}",
+
+                    total_amount:1,
+                    merchant_id:$('#merchant_id').val(),
+                    out_community_id:$('#out_community_id').val(),
+                    room:$('#room').val(),
+                    bill_cost_type:$('#bill_cost_type').val(),
+                    bill_type:$('#bill_type').val(),
+                    bill_status:$('#bill_status').val()
+//                    time:$('#bill_status').val(),
+//                    time_end:$('#time_end').val(),
+//                    time_start:$('#time_start').val()
+                },
+                function (data) {
+                    if(data.success){
+                        $('#totalje').text(data.totalje);
+                    }
+                }, 'json');
         });
+
     </script>
     <script>
+        function exportdata() {
+            window.location.href="{{url('merchant/billquery')}}"
+                +"?merchant_id="+$('#merchant_id').val()
+                +"&out_community_id="+$('#out_community_id').val()
+                +"&room="+$('#room').val()
+                +"&bill_cost_type=" +$('#bill_cost_type').val()
+                +"&bill_type="+$('#bill_type').val()
+                +"&store_type="+$('#store_type').val()
+                +"&bill_status="+$('#bill_status').val()
+                +"&export="+1;
+        }
         //弹出隐藏层
         function ShowDiv(show_div, bg_div) {
             document.getElementById(show_div).style.display = 'block';
@@ -163,8 +219,6 @@
             bgdiv.style.width = document.body.scrollWidth;
             $("#" + bg_div).height($(document).height());
             $('#out_id').chosen();
-
-
         }
 
         //关闭弹出层

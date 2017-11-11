@@ -35,7 +35,7 @@ class OauthController extends BaseController{
         try{
             $state = $request->get('state', 'App_1');//个人授权有这个参数商户授权没有这个参数
             $arr = explode('_', $state);
-            $merchant_id=Auth::guard("merchant")->user()->id;
+            $merchant_id=Auth::guard("merchantoauth")->user()->id;
             //第三方应用授权
             if ($arr[0] == "App") {
                 //1.初始化参数配置

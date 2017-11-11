@@ -5,7 +5,7 @@
     <link href="{{asset('upload_imgs/css/index.css')}}" type="text/css" rel="stylesheet"/>
     <style>
         /*.ant-form-item-control{*/
-        /*line-height: normal;*/
+            /*line-height: normal;*/
         /*}*/
         .fl{
             float: left;
@@ -80,7 +80,7 @@
                                                 无
                                             @else
                                                 @if(isset($agentsarr)&&array_key_exists($v->pid,$agentsarr))
-                                                    {{$agentsarr[$v->pid]}}
+                                                {{$agentsarr[$v->pid]}}
                                                 @endif
                                             @endif</td>
                                         <td>{{$v->email}}</td>
@@ -544,7 +544,7 @@
             }
         });
     </script>
-    <script>
+    <script>    
         $('#add-factor').click(function () {
             /*添加用户时获取角色*/
             isroot="{{Auth::guard('admin')->user()->hasRole('root')}}";

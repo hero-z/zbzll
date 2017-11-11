@@ -99,16 +99,23 @@
                             </li>
                         </ul>
                         @endrole
+                        {{--<ul class="nav nav-second-level">--}}
+                            {{--<li>--}}
+                                {{--<a class="J_menuItem" href="" data-index="0">服务商费率设置</a>--}}
+                            {{--</li>--}}
+                        {{--</ul>--}}
+                        {{--<ul class="nav nav-second-level">--}}
+                            {{--<li>--}}
+                                {{--<a class="J_menuItem" href="" data-index="0">生活号配置</a>--}}
+                            {{--</li>--}}
+                        {{--</ul>--}}
+                        @role('root')
                         <ul class="nav nav-second-level">
                             <li>
-                                <a class="J_menuItem" href="" data-index="0">服务商费率设置</a>
+                                <a class="J_menuItem" href="{{url('admin/logoindex')}}" data-index="0">logo设置</a>
                             </li>
                         </ul>
-                        <ul class="nav nav-second-level">
-                            <li>
-                                <a class="J_menuItem" href="" data-index="0">生活号配置</a>
-                            </li>
-                        </ul>
+                        @endrole
                     </li>
                 </ul>
             </div>

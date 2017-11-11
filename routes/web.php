@@ -41,6 +41,9 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin','middleware'=>'auth.adm
     $router->any('auth_agent',function (){ return view('admin.agent.auth_agent');});
     //系统配置
     $router->any('setisvconfig','ConfigController@setIsvConfig');
+    $router->get('logoindex',"LogoController@logoIndex");
+    $router->post('setlogo','LogoController@setLogo');
+    $router->any('uploadlogo',"UploadController@uploadLogo")->name('uploadlogo');
     //授权码
     $router->get('code',"OauthController@code");
     //角色权限管理
@@ -83,8 +86,8 @@ Route::group(['prefix' => 'admin','namespace' => 'Merchant'],function ($router)
     $router->get('oauthlogin', 'OauthLoginController@showLoginForm');
     $router->post('oauthlogin', 'OauthLoginController@login')->name('oauthmerchant.login');
     $router->get('oauthlogout', 'OauthLoginController@logout');
-    $router->get("oauthregister","OauthLoginController@showRegistrationForm")->name("oauthmerchant.register");
-    $router->post("oauthregister","OauthLoginController@register")->name('merchantoauth.register');
+    $router->get("oauthregister","OauthRegisterController@showRegistrationForm")->name("oauthmerchant.register");
+    $router->post("oauthregister","OauthRegisterController@register")->name('merchantoauth.register');
     $router->get('oauthhome', 'OauthHomeController@index');
 });
 //登录注册
