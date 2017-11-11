@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>支付宝配置</title>
+    <link href="{{asset('adminui/css/bootstrap.min.css?v=3.3.5')}}" rel="stylesheet">
+    <link href="{{asset('adminui/css/font-awesome.min.css?v=4.4.0')}}" rel="stylesheet">
+    <link href="{{asset('adminui/css/animate.min.css')}}" rel="stylesheet">
+    <link href="{{asset('adminui/css/style.min.css?v=4.0.0')}}" rel="stylesheet">
+    <style>
+        html,body{
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+        .title{
+            margin-left: 20px;
+            font-size: 15px;
+            color: #676a6c;
+            font-weight:600;
+
+        }
+        .form-control{
+            margin-top: 5px;
+        }
+        #zfb_keep{
+            position: absolute;
+            right: -47%;
+        }
+        textarea{
+            border:1px solid #e5e6e7;
+        }
+    </style>
+</head>
+<body>
+<div class="col-sm-12" style="height: 1000px;">
+    <div class="ibox float-e-margins">
+        <div class="ibox-title">
+            <h5>配置信息</h5>
+        </div>
+        @if(isset($cfg)&&$cfg)
+            <div class="ibox-content">
+                <form class="form-horizontal m-t" id="signupForm" action="" method="post">
+                    <div class="form-group">
+                        <span class="control-label title">APP_Id</span>
+                        <div class="col-sm-12">
+                            <input id="app_id" name="input" value="{{$cfg->app_id}}" class="form-control" type="text" aria-required="true" aria-invalid="true" class="error" placeholder="请输入APP_ID">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <span class="control-label title">PID</span>
+                        <div class="col-sm-12">
+                            <input id="pid" name="input" value="{{$cfg->pid}}" class="form-control" type="text" aria-required="true" aria-invalid="true" class="error" placeholder="请输入PID">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <span class="control-label title">应用网关</span>
+                        <div class="col-sm-12">
+                            <input id="notify" name="input" value="{{$cfg->notify}}" class="form-control" type="text" aria-required="true" aria-invalid="true" class="error" placeholder="请输入应用网关">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <span class="control-label title">授权回调地址</span>
+                        <div class="col-sm-12">
+                            <input id="callback_address" name="input" value="{{$cfg->callback}}" class="form-control" type="text" aria-required="true" aria-invalid="true" class="error" placeholder="授权回调地址">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <span class="control-label title">软件生成的应用私钥</span>
+                        <div class="col-sm-12">
+                            <textarea name="input" id="rsaPrivateKey"  style="min-width: 100%;min-height: 300px;" placeholder="请输入软件生成的应用私钥">{{$cfg->rsaPrivateKey}}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <span class="control-label title">软件生成的应用公钥</span>
+                        <div class="col-sm-12">
+                            <textarea name="input" id="alipayrsaPublicKey"  style="min-width: 100%;min-height: 150px;" placeholder="请输入软件生成的应用公钥">{{$cfg->alipayrsaPublicKey}}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-6 col-sm-offset-3">
+                            <button class="btn btn-primary" type="button" id="zfb_keep">保存</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        @endif
+    </div>
+</div>
+
+
+{{--成功弹窗--}}
+<div id="model_box" class="ant-modal" style="display:none;width: 30%;height: 20%;border-radius: 4px;text-align: center;padding: 20px 30px">
+    <div class="ant-modal-content" id="model" style="border-color: #4cae4c; background-color: #4cae4c;color: #fff;padding: 20px 30px;">
+
+    </div>
+</div>
+<script src="{{asset('adminui/js/jquery.min.js?v=2.1.4')}}"></script>
+<script src="{{asset('adminui/js/bootstrap.min.js?v=3.3.5')}}"></script>
+<script src="{{asset('adminui/js/content.min.js?v=1.0.0')}}"></script>
+<script src="{{asset('/js/layer/layer.min.js')}}" type="text/javascript"></script>
+<script>
+    $(document).ready(function () {
+        $('#zfb_keep').click(function () {
+            var input= $("[name='input']").val();
+            if($.trim(input)==""){
+                alert("不能为空");
+                return false;
+            }
+            $.post("{{url('admin/setisvconfig')}}", {
+                    _token: "{{csrf_token()}}",
+                    app_id:$('#app_id').val(),
+                    pid:$('#pid').val(),
+                    notify:$('#notify').val(),
+                    callback:$('#callback_address').val(),
+                    rsaPrivateKey:$('#rsaPrivateKey').val(),
+                    alipayrsaPublicKey:$('#alipayrsaPublicKey').val()
+                },
+                function (data) {
+                    layer.msg(data.msg);
+                }, 'json');
+        });
+
+    });
+
+    function CloseModel() {
+        $('#model_box').hide()
+    }
+</script>
+
+
+
+</body>
+</html>
