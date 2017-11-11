@@ -119,6 +119,25 @@
                                 <div style="clear:both;"></div>
                             </div>
                             <div class="hr-line-dashed"></div>
+                            <div class="form-group">
+                                <script src="{{asset('uploadify/jquery.uploadify.min.js')}}"
+                                        type="text/javascript"></script>
+                                <link rel="stylesheet" type="text/css" href="{{asset('uploadify/uploadify.css')}}">
+                                <label>服务商端登录页logo图片(最佳分辨率1500*500,或者同等比例长宽)</label>
+                                <input type="hidden" required="required" size="50" value="" name="logo3" id="logo3">
+                                <input type="hidden" required="required" size="50" value="{{$list->logo3}}" name="oldpic3" id="oldpic3">
+                                <!-- 图片上传按钮 -->
+                                <input id="fileupload3" type="file" name="image" data-url="{{route('uploadlogo')}}"
+                                       data-form-data='{"_token": "{{csrf_token()}}"}' multiple="true" >
+                                <!-- 图片展示模块 -->
+                                <div class="files3" ><img class="images_zone" id="oldimg3" width="30px" src="{{url($list->logo3)}}"></div>
+                                <div style="clear:both;"></div>
+                                <!-- 图片上传进度条模块 -->
+                                <div class="up_progress3">
+                                    <div class="progress-bar3"></div>
+                                </div>
+                                <div style="clear:both;"></div>
+                            </div>
                             <div style="text-align: center">
                                 <button class="btn btn-sm btn-primary  m-t-n-xs"
                                         type="button" onclick="addpost()" style="width: 100px;height:30px">
@@ -143,8 +162,10 @@
                     id:$("#id").val(),
                     logo1:$("#logo1").val(),
                     logo2:$("#logo2").val(),
+                    logo3:$("#logo3").val(),
                     oldpic1:$("#oldpic1").val(),
-                    oldpic2:$("#oldpic2").val()
+                    oldpic2:$("#oldpic2").val(),
+                    oldpic3:$("#oldpic3").val()
                 },
                 function (result) {
                     if (result.success==1) {
@@ -168,6 +189,7 @@
     <script type="text/javascript">
         publicfileupload("#fileupload", ".files", "#logo1", ".up_progress .progress-bar", ".up_progress","#oldimg1");
         publicfileupload("#fileupload2", ".files2", "#logo2", ".up_progress2 .progress-bar2", ".up_progress2","#oldimg2");
+        publicfileupload("#fileupload3", ".files3", "#logo3", ".up_progress3 .progress-bar3", ".up_progress3","#oldimg3");
         function publicfileupload(fileid, imgid, postimgid, class1, class2,oldimg) {
             //图片上传
             $(fileid).fileupload({
