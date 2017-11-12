@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>物业公司端</title>
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-    <link rel="shortcut icon" href="{{asset('ft5/images/logoico.ico')}}" />
+    <link rel="shortcut icon" href="{{url($adminlogo->logo3)}}" />
 
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,300' rel='stylesheet' type='text/css'>
 
@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="{{asset('/ft5/css/animate.css')}}">
     <link rel="stylesheet" href="{{asset('/ft5/css/style.css')}}">
 </head>
-<body class="style-3" style="background: #ffffff  {{url($adminlogo->logo1)}} ;">
+<body class="style-3" style="background: #ffffff  url({{$adminlogo->logo1}}) no-repeat ;">
 
 <div class="container">
     <div class="row">
