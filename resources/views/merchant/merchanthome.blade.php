@@ -11,7 +11,7 @@
                 <ul class="nav" id="side-menu">
                     <li class="nav-header">
                         <div class="dropdown profile-element">
-                            <span><img alt="image" class="img-circle" src="{{asset('/adminui/img/profile_small.jpg')}}" style="width:100px;height:100px"/></span>
+                            <span><img alt="image" class="img-circle" src="{{url($merchantLogo->logo1)}}" style="width:100px;height:100px"/></span>
                             <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                                 <span class="clear">
                                <span class="block m-t-xs"><strong class="font-bold" style="color:rosybrown">{{Auth::guard("merchant")->user()->name}}</strong></span>
@@ -156,11 +156,19 @@
                             <span class="nav-label">系统管理</span>
                             <span class="fa arrow"></span>
                         </a>
+                        @if(Auth::guard('merchant')->user()->hasRole('root'.Auth::guard('merchant')->user()->id))
+
                         <ul class="nav nav-second-level">
                             <li>
-                                <a class="J_menuItem" href="" data-index="0">推送设置</a>
+                                <a class="J_menuItem" href="{{url('merchant/companylogo')}}" data-index="0">物业公司头像设置</a>
                             </li>
                         </ul>
+                        @endif
+                        {{--<ul class="nav nav-second-level">--}}
+                            {{--<li>--}}
+                                {{--<a class="J_menuItem" href="" data-index="0">推送设置</a>--}}
+                            {{--</li>--}}
+                        {{--</ul>--}}
                     </li>
                 </ul>
             </div>

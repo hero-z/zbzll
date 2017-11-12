@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>物业系统服务商端</title>
+    <title>物业公司端</title>
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <link rel="shortcut icon" href="{{asset('ft5/images/logoico.ico')}}" />
 
@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="{{asset('/ft5/css/animate.css')}}">
     <link rel="stylesheet" href="{{asset('/ft5/css/style.css')}}">
 </head>
-<body class="style-3" style="background: #ffffff {{url('../images/geometry2.png')}} ;">
+<body class="style-3" style="background: #ffffff  {{url($adminlogo->logo1)}} ;">
 
 <div class="container">
     <div class="row">

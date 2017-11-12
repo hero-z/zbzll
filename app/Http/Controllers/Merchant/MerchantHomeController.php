@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Merchant;
 
 use App\Models\Company_info;
+use App\Models\Logo;
 use App\Models\MerchantRole;
 use Illuminate\Http\Request;
 
@@ -29,7 +30,9 @@ class MerchantHomeController extends Controller
      */
     public function index()
     {
-        return view('merchant.merchanthome');
+        $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
+        $merchantLogo=Logo::where("merchant_id",$merchant_id)->first();
+        return view("merchant.merchanthome",compact('merchantLogo'));
     }
     public function merchantIndex(){
         return view("merchant.index");

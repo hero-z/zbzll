@@ -16,6 +16,7 @@
     <link href="{{asset('/css/font-awesome.css')}}" rel="stylesheet">
     <link href="{{asset('/css/animate.css')}}" rel="stylesheet">
     <script src={{asset('/adminui/js/jquery.min.js?v=2.1.4')}}></script>
+    <script src="{{asset('/adminui/js/plugins/layer/layer.min.js?v=1.0.0')}}"></script>
     <script src="{{asset('/js/ajaxfileupload.js')}}" type="text/javascript"></script>
 </head>
 <body class="fixed-sidebar full-height-layout gray-bg  pace-done">

@@ -71,26 +71,26 @@
         <input type="hidden" id="token" value="{{csrf_token()}}">
         <div class="ibox float-e-margins">
             <div class="ibox-title">
-                <h5>logo设置</h5>
+                <h5>物业公司头像设置</h5>
             </div>
             <div class="ibox-content">
                 <div class="row">
                     <div class="col-sm-12">
                         <form action="" method="post">
-                            <input type="hidden" value="{{$list->id}}" id="id" name="id">
+                            <input type="hidden" value="@if($list){{$list->id}}@endif" id="id" name="id">
                             {{csrf_field()}}
                             <div class="form-group col-sm-6">
                                 <script src="{{asset('uploadify/jquery.uploadify.min.js')}}"
                                         type="text/javascript"></script>
                                 <link rel="stylesheet" type="text/css" href="{{asset('uploadify/uploadify.css')}}">
-                                <label>物业公司端登陆页logo图片(最佳分辨率1500*800,透明底色)</label>
+                                <label>物业公司头像(最佳分辨率100*100)</label>
                                 <input type="hidden" required="required" size="50" value="" name="logo1" id="logo1">
-                                <input type="hidden" required="required" size="50" value="{{$list->logo1}}" name="oldpic1" id="oldpic1">
+                                <input type="hidden" required="required" size="50" value="@if($list){{$list->logo1}}@endif" name="oldpic1" id="oldpic1">
                                 <!-- 图片上传按钮 -->
                                 <input id="fileupload" type="file" name="image" data-url="{{route('uploadlogo')}}"
                                        data-form-data='{"_token": "{{csrf_token()}}"}' multiple="true" >
                                 <!-- 图片展示模块 -->
-                                <div class="files" ><img class="images_zone" id="oldimg1" width="30px" src="{{url($list->logo1)}}"></div>
+                                <div class="files" ><img class="images_zone" id="oldimg1" width="30px" src="@if($list){{url($list->logo1)}}@endif"></div>
                                 <div style="clear:both;"></div>
                                 <!-- 图片上传进度条模块 -->
                                 <div class="up_progress">
@@ -99,65 +99,6 @@
                                 <div style="clear:both;"></div>
                             </div>
                             <div class="hr-line-dashed"></div>
-                            <div class="form-group col-sm-6">
-                                <script src="{{asset('uploadify/jquery.uploadify.min.js')}}"
-                                        type="text/javascript"></script>
-                                <link rel="stylesheet" type="text/css" href="{{asset('uploadify/uploadify.css')}}">
-                                <label>服务商端登录页logo图片(最佳分辨率1500*500,透明底色)</label>
-                                <input type="hidden" required="required" size="50" value="" name="logo2" id="logo2">
-                                <input type="hidden" required="required" size="50" value="{{$list->logo2}}" name="oldpic2" id="oldpic2">
-                                <!-- 图片上传按钮 -->
-                                <input id="fileupload2" type="file" name="image" data-url="{{route('uploadlogo')}}"
-                                       data-form-data='{"_token": "{{csrf_token()}}"}' multiple="true" >
-                                <!-- 图片展示模块 -->
-                                <div class="files2" ><img class="images_zone" id="oldimg2" width="30px" src="{{url($list->logo2)}}"></div>
-                                <div style="clear:both;"></div>
-                                <!-- 图片上传进度条模块 -->
-                                <div class="up_progress2">
-                                    <div class="progress-bar2"></div>
-                                </div>
-                                <div style="clear:both;"></div>
-                            </div>
-                            <div class="hr-line-dashed"></div>
-                            <div class="form-group col-sm-6">
-                                <script src="{{asset('uploadify/jquery.uploadify.min.js')}}"
-                                        type="text/javascript"></script>
-                                <link rel="stylesheet" type="text/css" href="{{asset('uploadify/uploadify.css')}}">
-                                <label>服务商端头像(最佳分辨100*100)</label>
-                                <input type="hidden" required="required" size="50" value="" name="logo4" id="logo4">
-                                <input type="hidden" required="required" size="50" value="{{$list->logo4}}" name="oldpic4" id="oldpic4">
-                                <!-- 图片上传按钮 -->
-                                <input id="fileupload4" type="file" name="image" data-url="{{route('uploadlogo')}}"
-                                       data-form-data='{"_token": "{{csrf_token()}}"}' multiple="true" >
-                                <!-- 图片展示模块 -->
-                                <div class="files4" ><img class="images_zone" id="oldimg4" width="30px" src="{{url($list->logo4)}}"></div>
-                                <div style="clear:both;"></div>
-                                <!-- 图片上传进度条模块 -->
-                                <div class="up_progress4">
-                                    <div class="progress-bar4"></div>
-                                </div>
-                                <div style="clear:both;"></div>
-                            </div>
-                            <div class="hr-line-dashed"></div>
-                            <div class="form-group col-sm-6">
-                                <script src="{{asset('uploadify/jquery.uploadify.min.js')}}"
-                                        type="text/javascript"></script>
-                                <link rel="stylesheet" type="text/css" href="{{asset('uploadify/uploadify.css')}}">
-                                <label>链接ico(最佳分辨率30*30,或者同等比例长宽)</label>
-                                <input type="hidden" required="required" size="50" value="" name="logo3" id="logo3">
-                                <input type="hidden" required="required" size="50" value="{{$list->logo3}}" name="oldpic3" id="oldpic3">
-                                <!-- 图片上传按钮 -->
-                                <input id="fileupload3" type="file" name="image" data-url="{{route('uploadlogo')}}"
-                                       data-form-data='{"_token": "{{csrf_token()}}"}' multiple="true" >
-                                <!-- 图片展示模块 -->
-                                <div class="files3" ><img class="images_zone" id="oldimg3" width="30px" src="{{url($list->logo3)}}"></div>
-                                <div style="clear:both;"></div>
-                                <!-- 图片上传进度条模块 -->
-                                <div class="up_progress3">
-                                    <div class="progress-bar3"></div>
-                                </div>
-                                <div style="clear:both;"></div>
-                            </div>
                             <div style="text-align: center">
                                 <button class="btn btn-sm btn-primary  m-t-n-xs"
                                         type="button" onclick="addpost()" style="width: 100px;height:30px">
@@ -176,18 +117,12 @@
 @section('js')
     <script>
         function addpost() {
-            $.post("{{url('admin/setlogo')}}",
+            $.post("{{url('merchant/setcompanylogo')}}",
                 {
                     _token: '{{csrf_token()}}',
                     id:$("#id").val(),
                     logo1:$("#logo1").val(),
-                    logo2:$("#logo2").val(),
-                    logo3:$("#logo3").val(),
-                    logo4:$("#logo4").val(),
                     oldpic1:$("#oldpic1").val(),
-                    oldpic2:$("#oldpic2").val(),
-                    oldpic3:$("#oldpic3").val(),
-                    oldpic4:$("#oldpic4").val()
                 },
                 function (result) {
                     if (result.success==1) {
@@ -195,7 +130,7 @@
                         layer.confirm('设置成功', {
                             btn: ['确定', '返回'] //按钮
                         }, function () {
-                            window.location.href = "{{url('admin/logoindex')}}";
+                            window.location.href = "{{url('merchant/companylogo')}}";
                         }, function () {
                             layer.msg('正在浏览提交的logo');
                         });
@@ -210,9 +145,6 @@
 
     <script type="text/javascript">
         publicfileupload("#fileupload", ".files", "#logo1", ".up_progress .progress-bar", ".up_progress","#oldimg1");
-        publicfileupload("#fileupload2", ".files2", "#logo2", ".up_progress2 .progress-bar2", ".up_progress2","#oldimg2");
-        publicfileupload("#fileupload3", ".files3", "#logo3", ".up_progress3 .progress-bar3", ".up_progress3","#oldimg3");
-        publicfileupload("#fileupload4", ".files4", "#logo4", ".up_progress4 .progress-bar4", ".up_progress4","#oldimg4");
         function publicfileupload(fileid, imgid, postimgid, class1, class2,oldimg) {
             //图片上传
             $(fileid).fileupload({

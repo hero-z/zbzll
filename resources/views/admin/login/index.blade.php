@@ -14,7 +14,7 @@
 <body style="overflow: hidden">
 <div class="page">
     <div class="loginwarrp">
-        <div class="logo" style="height:100px;"><img src="{{asset('ft5/images/logogreen.png')}}" style="width: 250px;" alt="往知来"></div>
+        <div class="logo" style="height:100px;"><img src="{{url($adminlogo->logo2)}}" style="width: 250px;" alt="往知来"></div>
         <div class="login_form">
             <form id="Login" name="Login" action="{{route('admin.login')}}" method="post" onsubmit="">
                 {{csrf_field()}}

@@ -14,7 +14,7 @@
     <!--[if lt IE 8]>
     <meta http-equiv="refresh" content="0;ie.html" />
     <![endif]-->
-    <link rel="shortcut icon" href="{{asset('ft5/images/logoico.ico')}}" />
+    <link rel="shortcut icon" href="{{url($adminlogo->logo3)}}" />
     <link href="{{asset('/adminui/css/bootstrap.min.css?v=3.3.5')}}" rel="stylesheet">
     <link href="{{asset('/adminui/css/style.min.css?v=4.0.0')}}" rel="stylesheet">
     <link href="{{asset('/adminui/css/animate.min.css')}}" rel="stylesheet">

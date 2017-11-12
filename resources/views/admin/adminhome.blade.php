@@ -11,7 +11,7 @@
                 <ul class="nav" id="side-menu">
                     <li class="nav-header">
                         <div class="dropdown profile-element">
-                            <span><img alt="image" style="width: 100px;height: 100px;" class="img-circle" src="{{asset('/ft5/images/logowhite.jpg')}}" /></span>
+                            <span><img alt="image" style="width: 100px;height: 100px;" class="img-circle" src="{{url($adminlogo->logo4)}}" /></span>
                             <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                                 <span class="clear">
                                <span class="block m-t-xs"><strong class="font-bold" style="color:rosybrown">{{Auth::guard('admin')->user()->name}}</strong></span>
