@@ -7,7 +7,7 @@
     <meta name="keywords" content="物业服务商登录后台" />
     <link rel="stylesheet" href="{{asset('ft5/css/reset.css')}}" />
     <link rel="stylesheet" href="{{asset('ft5/css/login.css')}}" />
-    <link rel="shortcut icon" href="{{asset('ft5/images/logoico.ico')}}" />
+    <link rel="shortcut icon" href="{{url($adminlogo->logo3)}}" />
     <script type="text/javascript" src="{{asset('ft5/js/jquery.min.js')}}"></script>
     <script type="text/javascript" src="{{asset('ft5/js/login.js')}}"></script>
 </head>

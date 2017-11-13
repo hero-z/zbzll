@@ -87,7 +87,7 @@
                                 <input type="hidden" required="required" size="50" value="" name="logo1" id="logo1">
                                 <input type="hidden" required="required" size="50" value="@if($list){{$list->logo1}}@endif" name="oldpic1" id="oldpic1">
                                 <!-- 图片上传按钮 -->
-                                <input id="fileupload" type="file" name="image" data-url="{{route('uploadlogo')}}"
+                                <input id="fileupload" type="file" name="image" data-url="{{route('uploadlogos')}}"
                                        data-form-data='{"_token": "{{csrf_token()}}"}' multiple="true" >
                                 <!-- 图片展示模块 -->
                                 <div class="files" ><img class="images_zone" id="oldimg1" width="30px" src="@if($list){{url($list->logo1)}}@endif"></div>

@@ -11,7 +11,7 @@
                 <ul class="nav" id="side-menu">
                     <li class="nav-header">
                         <div class="dropdown profile-element">
-                            <span><img alt="image" class="img-circle" src="{{url($merchantLogo->logo1)}}" style="width:100px;height:100px"/></span>
+                            <span><img alt="image" class="img-circle" src="@if($merchantLogo){{url($merchantLogo->logo1)}}@endif" style="width:100px;height:100px"/></span>
                             <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                                 <span class="clear">
                                <span class="block m-t-xs"><strong class="font-bold" style="color:rosybrown">{{Auth::guard("merchant")->user()->name}}</strong></span>

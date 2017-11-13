@@ -178,6 +178,11 @@ Route::group(['prefix' => 'merchant','namespace' => 'Merchant','middleware'=>'au
     $router->get('ceshi',"CommunityController@ceshi");
     //统计管理
     $router->any("billquery","StatisticalManageController@billQuerry");
+    //系统设置
+    $router->get('companylogo',"LogoController@companyLogo");
+    $router->post('setcompanylogo',"LogoController@setCompanyLogo");
+    $router->any('uploadlogo',"UploadController@uploadLogo")->name('uploadlogos');
+
 });
 //支付异步通知
 Route::group(['namespace' =>'Merchant', 'prefix' => "merchant"], function () {
