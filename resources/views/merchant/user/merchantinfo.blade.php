@@ -331,6 +331,12 @@
     @endsection
     @section('js')
     <script>
+        $(document).ready(function () {
+            render();
+            function render() {
+                $('body').css('overflow-y','scroll');
+            }
+        });
         $('#add-factor').click(function () {
             /*添加用户时获取角色*/
             isroot="{{Auth::guard('merchant')->user()->hasRole('root'.Auth::guard('merchant')->user()->id)}}";

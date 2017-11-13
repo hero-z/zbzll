@@ -225,7 +225,7 @@
                 <iframe class="J_iframe" name="iframe0" width="100%" height="100%" src="{{url('merchant/merchantindex')}}" frameborder="0" data-id="index_v2.html" seamless></iframe>
             </div>
             <div class="footer">
-                <div class="pull-right">&copy; <a href="" target="_blank">往知来网络科技有限公司</a>
+                <div class="pull-right">&copy; <a href="" target="_blank">{{--往知来网络科技有限公司--}}</a>
                 </div>
             </div>
         </div>

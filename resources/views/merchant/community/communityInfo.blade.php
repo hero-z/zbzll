@@ -423,6 +423,12 @@
     @section('js')
     <script type="text/javascript" src="{{asset('/adminui/js/jquery.qrcode.min.js')}}"></script>
     <script>
+        $(document).ready(function () {
+            render();
+            function render() {
+                $('body').css('overflow-y','scroll');
+            }
+        });
         //删除小区
         function del(id) {
             layer.confirm('确定删除吗?删除小区后将影响其所属房屋账单等所有操作!', {
