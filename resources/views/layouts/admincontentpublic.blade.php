@@ -26,11 +26,11 @@
 <body class="fixed-sidebar full-height-layout gray-bg" style="overflow-y:auto">
 @yield("content")
 </body>
+<script src={{asset('/adminui/js/jquery.min.js')}}></script>
 <script src="{{asset('/adminui/js/bootstrap.min.js?v=3.3.5')}}"></script>
 <script src="{{asset('/adminui/js/plugins/layer/layer.min.js?v=1.0.0')}}"></script>
 <script src="{{asset('/upload_imgs/js/imgUp.js')}}"></script>
 <script src="{{asset('/upload_imgs/js/imgPlugin.js')}}"></script>
-<script src={{asset('/adminui/js/jquery.min.js')}}></script>
 <script src="{{asset('/js/ajaxfileupload.js')}}" type="text/javascript"></script>
 
 <script>
