@@ -44,13 +44,13 @@
                                             未同步到支付宝
                                         @endif
                                         @if($v->alipay_status=="PENDING_ONLINE")
-                                            待上线
+                                                <span style="color: green">待上线</span>
                                         @endif
                                             @if($v->alipay_status=="OFFLINE")
                                                 下线中
                                             @endif
                                         @if($v->alipay_status=='ONLINE')
-                                            已上线
+                                          <span style="color: red">已上线</span>
                                         @endif
                                     </td>
                                     <td>
@@ -58,13 +58,13 @@
                                             未同步到支付宝
                                         @endif
                                         @if($v->basicservice_status=="PENDING_ONLINE")
-                                            待上线
+                                           <span style="color: green">待上线</span>
                                         @endif
                                         @if($v->basicservice_status=="OFFLINE")
                                             下线中
                                         @endif
                                         @if($v->basicservice_status=='ONLINE')
-                                            上线中
+                                                <span style="color: red">   上线中<span>
                                         @endif
                                     </td>
                                     <td>{{$v->created_at}}</td>
@@ -594,9 +594,9 @@
         //初始化小区服务
         function initializeBasicService(id){
             var id=id;
-            var basicservice_status=$("#basicservice_status").val();
             ShowDiv('initial_state','mask');
             $("#initial_keep").click(function(){
+                var basicservice_status=$("#basicservice_status").val();
                 layer.confirm('确定初始化小区服务吗?', {
                     btn: ['确定', '取消'] //按钮
                 }, function () {

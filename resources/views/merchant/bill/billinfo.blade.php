@@ -119,23 +119,23 @@
                                         物业费公摊
                                     @endif
                                     </td>
-                                    <td>{{$v->bill_entry_amount}}元</td>
+                                    <td><span style="color: mediumvioletred">{{$v->bill_entry_amount}}</span>元</td>
                                     <td>{{$v->acct_period}}</td>
                                     <td>{{$v->release_day}}</td>
                                     <td>{{$v->deadline}}</td>
                                     <td>{{$v->remark_str}}</td>
                                     <td>
                                         @if($v->bill_status=="ONLINE")
-                                            已同步
+                                            <span style="color: green">已同步</span>
                                         @endif
                                         @if($v->bill_status=="NONE")
-                                                未同步
+                                               未同步
                                         @endif
                                         @if($v->bill_status=="UNDERREVIEW"||$v->bill_status=="ONLINE_UNDERREVIEW")
-                                            线下结算审核中
+                                          线下结算审核中
                                         @endif
                                         @if($v->bill_status=="TRADE_SUCCESS")
-                                            已结算
+                                           <span style="color:red">已结算</span>
                                         @endif
                                     </td>
                                     <td>
@@ -155,9 +155,6 @@
                                             </button>
                                             @endpermission
                                         @endif
-                                        <button type="button" onclick='editBill("{{$v->id}}")'
-                                                class="btn btn-outline btn-danger">编辑
-                                        </button>
                                         @if($v->bill_status!='ONLINE_UNERREVIEW'&&$v->bill_status!='UNERREVIEW'&&$v->bill_status!='SUCCESS'&&Auth::guard('merchant')->user()->pid!=0)
                                         @permission('editLineBill')
                                         <button type="button" onclick='editLineBill("{{$v->id}}","{{$v->bill_status}}")'

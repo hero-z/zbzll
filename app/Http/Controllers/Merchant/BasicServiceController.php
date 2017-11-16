@@ -4,6 +4,7 @@ use App\Models\Community;
 use App\Models\Company_info;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Packages\alipay\request\AlipayEcoCplifeBasicserviceInitializeRequest;
 use Packages\alipay\request\AlipayEcoCplifeBasicserviceModifyRequest;
 
@@ -23,29 +24,29 @@ class BasicServiceController extends BaseController{
                 $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
                 //获取物业公司授权token
                 $app_auth_token=Company_info::where('merchant_id',$merchant_id)->where('status',1)->select('app_auth_token')->first()->app_auth_token;
-               if($community->basicservice_status=="NONE"){
-                   $requests = new AlipayEcoCplifeBasicserviceInitializeRequest ();
-                   $requests->setBizContent("{" .
-                       "\"community_id\":\"".$community->community_id."\"," .
-                       "\"service_type\":\"PROPERTY_PAY_BILL_MODE\"," .
-                       "\"external_invoke_address\":\"".$xternal_invoke_address."\"," .
-                       "\"account_type\":\"ALIPAY_PARTNER_ID\"," .
-                       "\"account\":\"".$community->account."\"," .
-                       "\"service_expires\":\"2030-12-31 23:59:59\"" .
-                       "  }");
-               }else{
-                   $aop->method="alipay.eco.cplife.basicservice.modify";
-                   $requests = new AlipayEcoCplifeBasicserviceModifyRequest ();
-                   $requests->setBizContent("{" .
-                       "\"community_id\":\"".$community->community_id."\"," .
-                       "\"service_type\":\"PROPERTY_PAY_BILL_MODE\"," .
-                       "\"status\":\"".$basicservice_status."\"," .
-                       "\"external_invoke_address\":\"".$xternal_invoke_address."\"," .
-                       "\"account_type\":\"ALIPAY_PARTNER_ID\"," .
-                       "\"account\":\"".$community->account."\"," .
-                       "\"service_expires\":\"2030-12-31 23:59:59\"" .
-                       "  }");
-               }
+                if($community->basicservice_status=="NONE"){
+                    $requests = new AlipayEcoCplifeBasicserviceInitializeRequest ();
+                    $requests->setBizContent("{" .
+                        "\"community_id\":\"".$community->community_id."\"," .
+                        "\"service_type\":\"PROPERTY_PAY_BILL_MODE\"," .
+                        "\"external_invoke_address\":\"".$xternal_invoke_address."\"," .
+                        "\"account_type\":\"ALIPAY_PARTNER_ID\"," .
+                        "\"account\":\"".$community->account."\"," .
+                        "\"service_expires\":\"2030-12-31 23:59:59\"" .
+                        "  }");
+                }else{
+                    $aop->method="alipay.eco.cplife.basicservice.modify";
+                    $requests = new AlipayEcoCplifeBasicserviceModifyRequest ();
+                    $requests->setBizContent("{" .
+                        "\"community_id\":\"".$community->community_id."\"," .
+                        "\"service_type\":\"PROPERTY_PAY_BILL_MODE\"," .
+                        "\"status\":\"".$basicservice_status."\"," .
+                        "\"external_invoke_address\":\"".$xternal_invoke_address."\"," .
+                        "\"account_type\":\"ALIPAY_PARTNER_ID\"," .
+                        "\"account\":\"".$community->account."\"," .
+                        "\"service_expires\":\"2030-12-31 23:59:59\"" .
+                        "  }");
+                }
                 $result = $aop->execute ( $requests,"",$app_auth_token);
                 $responseNode = str_replace(".", "_", $requests->getApiMethodName()) . "_response";
                 $resultCode = $result->$responseNode->code;

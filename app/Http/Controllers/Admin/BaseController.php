@@ -36,7 +36,8 @@ class BaseController extends Controller {
             $config=$config->toArray();
         }
         //1.接入参数初始化
-        $c = app('AopClient');
+        $c = New AopClient();
+
         $c->gatewayUrl = $config['gatewayUrl'];
         $c->appId = $config['app_id'];
         //软件生成的应用私钥字符串

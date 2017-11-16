@@ -110,7 +110,7 @@
                                     <td>{{$v->out_room_id}}</td>
                                     <td>
                                         @if($v->status=="ONLINE")
-                                            已同步
+                                         <span style="color: red">已同步</span>
                                         @else
                                             未同步
                                         @endif

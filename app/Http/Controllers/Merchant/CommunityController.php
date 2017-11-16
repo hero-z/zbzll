@@ -341,6 +341,9 @@ class CommunityController extends BaseController
             $resultCode = $result->$responseNode->code;
         if(!empty($resultCode)&&$resultCode == 10000){
             //更新小区状态
+                $data['alipay_status']=$result->$responseNode->community_status;
+                $data['basicservice_status']=$result->$responseNode->community_services[0]->status;
+                Community::where('community_id',$community_id)->update($data);
                 return json_encode([
                    "success"=>1,
                    "msg"=>$result->$responseNode->community_services[0]->qr_code_image

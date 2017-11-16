@@ -10,7 +10,7 @@ class NotifyController extends BaseController{
         //支付异步通知
         try{
             $aop = $this->AopClientNotify();
-            $wzl = $aop->rsaCheckV2($request->all(), $aop->alipayrsaPublicKey,'RSA');
+            $wzl = $aop->rsaCheckV2($request->all(), $aop->alipayrsaPublicKey,'RSA2');
             if($wzl){
                 $data = $request->all();
                 $bill=Bill::where("bill_entry_id",$data['det_list'])->first();

@@ -57,23 +57,24 @@ class BillController extends BaseController{
         $error="未知错误";
         try{
             if(CheckRolePermissionController::CheckRoleRoot()||CheckRolePermissionController::CheckPremission('addBill')){
-              $data=$request->except('_token');
-              $data['admin_id']=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
-              $data['company_id']=Company_info::where('admin_id',$data['admin_id'])->first()->id;
-              $resident=Residentinfo::where('out_room_id',$request->out_room_id)->first();
-              $data['remark_str']=$resident->name;
-              $data['bill_entry_id']=date("YmdHis").rand(10000,99999).time();
+                $data=$request->except('_token');
+                $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
+                $data['company_id']=Company_info::where('merchant_id',$merchant_id)->first()->id;
+                $data['admin_id']=Company_info::where('merchant_id',$merchant_id)->first()->admin_id;
+                $resident=Residentinfo::where('out_room_id',$request->out_room_id)->first();
+                $data['remark_str']=$resident->name;
+                $data['bill_entry_id']=date("YmdHis").rand(10000,99999).time();
                 if(Bill::create($data)){
-                  return json_encode([
-                      "success"=>1,
-                      "msg"=>'添加账单成功!'
-                  ]);
-              }else{
-                  return json_encode([
-                      "success"=>0,
-                      "msg"=>'添加账单失败!'
-                  ]);
-              }
+                    return json_encode([
+                        "success"=>1,
+                        "msg"=>'添加账单成功!'
+                    ]);
+                }else{
+                    return json_encode([
+                        "success"=>0,
+                        "msg"=>'添加账单失败!'
+                    ]);
+                }
 
             }else{
                 $error='亲,你还没有该操作权限!';
@@ -96,8 +97,9 @@ class BillController extends BaseController{
             if(CheckRolePermissionController::CheckRoleRoot()||CheckRolePermissionController::CheckPremission('addBill')){
                 $file = public_path($request->get('file'));
                 $data['cost_type']=$request->cost_type;
-                $data['admin_id']=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
-                $data['company_id']=Company_info::where('admin_id',$data['admin_id'])->first()->id;
+                $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
+                $data['company_id']=Company_info::where('merchant_id',$merchant_id)->first()->id;
+                $data['admin_id']=Company_info::where('merchant_id',$merchant_id)->first()->admin_id;
                 $excel= Excel::load($file, function($reader) {
                     $reader->noHeading();
                     $excel = $reader->all();
@@ -312,35 +314,35 @@ class BillController extends BaseController{
                 }else{
                     $data['bill_status']="UNDERREVIEW";
                 }
-                   if($request->bill_status=="ONLINE_UNDERREVIEW"){
-                       $billInfo=Bill::where('id',$id)->first();
-                       //获取物业公司主账号id
-                       $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
-                       //获取物业公司授权token
-                       $app_auth_token=Company_info::where('merchant_id',$merchant_id)->where('status',1)->select('app_auth_token')->first()->app_auth_token;
-                       $aop = $this->AopClient ();
-                       $aop->method="alipay.eco.cplife.bill.delete";
-                       $community_id=$billInfo->community_id;
-                       $bill_entry_id=$billInfo->bill_entry_id;
-                       $requests = new AlipayEcoCplifeBillDeleteRequest ();
-                       $requests->setBizContent("{" .
-                           "\"community_id\":\"".$community_id."\"," .
-                           "      \"bill_entry_id_list\":[" .
-                           "        \"".$bill_entry_id."\"," .
-                           "      ]" .
-                           "  }");
-                       $result = $aop->execute ( $requests,"",$app_auth_token);
-                       $responseNode = str_replace(".", "_", $requests->getApiMethodName()) . "_response";
-                       $resultCode = $result->$responseNode->code;
-                       if(!empty($resultCode)&&$resultCode == 10000){
-                           $data['bill_status']="TRADE_SUCCESS";
-                       } else {
-                           return json_encode([
-                               "success"=>0,
-                               "msg"=>"提交审核失败!".$result->$responseNode->sub_msg
-                           ]);
-                       }
-                   }
+                if($request->bill_status=="ONLINE_UNDERREVIEW"){
+                    $billInfo=Bill::where('id',$id)->first();
+                    //获取物业公司主账号id
+                    $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
+                    //获取物业公司授权token
+                    $app_auth_token=Company_info::where('merchant_id',$merchant_id)->where('status',1)->select('app_auth_token')->first()->app_auth_token;
+                    $aop = $this->AopClient ();
+                    $aop->method="alipay.eco.cplife.bill.delete";
+                    $community_id=$billInfo->community_id;
+                    $bill_entry_id=$billInfo->bill_entry_id;
+                    $requests = new AlipayEcoCplifeBillDeleteRequest ();
+                    $requests->setBizContent("{" .
+                        "\"community_id\":\"".$community_id."\"," .
+                        "      \"bill_entry_id_list\":[" .
+                        "        \"".$bill_entry_id."\"," .
+                        "      ]" .
+                        "  }");
+                    $result = $aop->execute ( $requests,"",$app_auth_token);
+                    $responseNode = str_replace(".", "_", $requests->getApiMethodName()) . "_response";
+                    $resultCode = $result->$responseNode->code;
+                    if(!empty($resultCode)&&$resultCode == 10000){
+                        $data['bill_status']="TRADE_SUCCESS";
+                    } else {
+                        return json_encode([
+                            "success"=>0,
+                            "msg"=>"提交审核失败!".$result->$responseNode->sub_msg
+                        ]);
+                    }
+                }
                 if($request->bill_status=='UNDERREVIEW'){
                     $data['bill_status']="TRADE_SUCCESS";
                 }
@@ -468,45 +470,45 @@ class BillController extends BaseController{
         $error="未知错误";
         try{
             if(CheckRolePermissionController::CheckRoleRoot()||CheckRolePermissionController::CheckPremission('questionBill')){
-               $bill_id=$request->bill_id;
-               $data['bill_entry_amount']=$request->correct_bill_amount;
-               $billInfo=Bill::where('id',$bill_id)->first();
-               if($billInfo->bill_status=='ONLINE'){
-                   //获取物业公司主账号id
-                   $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
-                   //获取物业公司授权token
-                   $app_auth_token=Company_info::where('merchant_id',$merchant_id)->where('status',1)->select('app_auth_token')->first()->app_auth_token;
-                   $aop = $this->AopClient ();
-                   $aop->method="alipay.eco.cplife.bill.modify";
-                   $community_id=$billInfo->community_id;
-                   $bill_entry_amount=$request->correct_bill_amount;
-                   $bill_entry_id=$billInfo->bill_entry_id;
-                   $requests = new AlipayEcoCplifeBillModifyRequest ();
-                   $requests->setBizContent("{" .
-                       "\"community_id\":\"".$community_id."\"," .
-                       "      \"bill_entry_list\":[{" .
-                       "        \"bill_entry_id\":\"".$bill_entry_id."\"," .
-                       "\"bill_entry_amount\":\"".$bill_entry_amount."\"," .
-                       "        }]" .
-                       "  }");
-                   $result = $aop->execute ( $requests,"",$app_auth_token);
-                   $responseNode = str_replace(".", "_", $requests->getApiMethodName()) . "_response";
-                   $resultCode = $result->$responseNode->code;
-                   if(!empty($resultCode)&&$resultCode == 10000){
-                       $billInfo->update($data);
-                       $datas['status']="OK";
-                       BillQuestion::where('bill_id',$bill_id)->update($datas);
-                   } else {
-                       return json_encode([
-                           "success"=>0,
-                           "msg"=>"矫正账单失败!".$result->$responseNode->sub_msg
-                       ]);
-                   }
-               }else{
-                   $billInfo->update($data);
-                   $datas['status']="OK";
-                   BillQuestion::where('bill_id',$bill_id)->update($datas);
-               }
+                $bill_id=$request->bill_id;
+                $data['bill_entry_amount']=$request->correct_bill_amount;
+                $billInfo=Bill::where('id',$bill_id)->first();
+                if($billInfo->bill_status=='ONLINE'){
+                    //获取物业公司主账号id
+                    $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
+                    //获取物业公司授权token
+                    $app_auth_token=Company_info::where('merchant_id',$merchant_id)->where('status',1)->select('app_auth_token')->first()->app_auth_token;
+                    $aop = $this->AopClient ();
+                    $aop->method="alipay.eco.cplife.bill.modify";
+                    $community_id=$billInfo->community_id;
+                    $bill_entry_amount=$request->correct_bill_amount;
+                    $bill_entry_id=$billInfo->bill_entry_id;
+                    $requests = new AlipayEcoCplifeBillModifyRequest ();
+                    $requests->setBizContent("{" .
+                        "\"community_id\":\"".$community_id."\"," .
+                        "      \"bill_entry_list\":[{" .
+                        "        \"bill_entry_id\":\"".$bill_entry_id."\"," .
+                        "\"bill_entry_amount\":\"".$bill_entry_amount."\"," .
+                        "        }]" .
+                        "  }");
+                    $result = $aop->execute ( $requests,"",$app_auth_token);
+                    $responseNode = str_replace(".", "_", $requests->getApiMethodName()) . "_response";
+                    $resultCode = $result->$responseNode->code;
+                    if(!empty($resultCode)&&$resultCode == 10000){
+                        $billInfo->update($data);
+                        $datas['status']="OK";
+                        BillQuestion::where('bill_id',$bill_id)->update($datas);
+                    } else {
+                        return json_encode([
+                            "success"=>0,
+                            "msg"=>"矫正账单失败!".$result->$responseNode->sub_msg
+                        ]);
+                    }
+                }else{
+                    $billInfo->update($data);
+                    $datas['status']="OK";
+                    BillQuestion::where('bill_id',$bill_id)->update($datas);
+                }
                 return json_encode([
                     "success"=>1,
                     "msg"=>"矫正账单成功!"

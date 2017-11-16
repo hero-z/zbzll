@@ -35,6 +35,7 @@ class BaseController extends Controller {
         }
         //1.接入参数初始化
         $c = New AopClient();
+
         $c->gatewayUrl = $config['gatewayUrl'];
         $c->appId = $config['app_id'];
 //        $c->signType="RSA2";//升级算法
