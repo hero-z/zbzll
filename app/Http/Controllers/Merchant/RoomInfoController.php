@@ -171,12 +171,12 @@ class RoomInfoController extends BaseController{
                         $room['building_id']=$building_id;
                         $room['unit_id']=$unit_id;
                         $room['community_id']=$community_id;
-                        $room['room']=$excel[$k][0];
-                        $room['area']=$excel[$k][1];
+                        $room['room']=$v[0];
+                        $room['area']=$v[1];
                         $room['out_room_id']=date('YmdHis').time().rand(100000,999999);;
-                        $room['address']=$address.$excel[$k][0];
-                        $resident['name']=$excel[$k][2];
-                        $resident['phone']=$excel[$k][3];
+                        $room['address']=$address.$v[0];
+                        $resident['name']=$v[2];
+                        $resident['phone']=$v[3];
                         $resident['out_room_id']=$room['out_room_id'];
                         $check=RoomInfo::where('out_community_id',$out_community_id)
                             ->where('building_id',$building_id)
@@ -447,14 +447,14 @@ class RoomInfoController extends BaseController{
         $error="未知错误";
         try{
             if(CheckRolePermissionController::CheckRoleRoot()||CheckRolePermissionController::CheckPremission('delRoom')){
-
+                $bills=Bill::pluck('out_room_id')->toArray();
                 $unit_id=$request->unit_id;
                 $room_info_set=DB::table("room_infos")
                     ->join("units","room_infos.unit_id","=","units.id")
                     ->join("buildings","units.building_id","=","buildings.id")
                     ->join("communities","buildings.out_community_id","=","communities.out_community_id")
-                    ->join('bills','room_infos.out_room_id',"!=","bills.out_room_id")
                     ->where('units.id',$unit_id)
+                    ->whereNotIn('out_room_id',$bills)
                     ->where("room_infos.status","NONE")
                     ->select("room_infos.out_room_id")
                     ->get();
@@ -463,24 +463,24 @@ class RoomInfoController extends BaseController{
                     ->join("units","room_infos.unit_id","=","units.id")
                     ->join("buildings","units.building_id","=","buildings.id")
                     ->join("communities","buildings.out_community_id","=","communities.out_community_id")
-                    ->join('bills','room_infos.out_room_id',"!=","bills.out_room_id")
                     ->where('units.id',$unit_id)
+                    ->whereNotIn('out_room_id',$bills)
                     ->where("room_infos.status","!=","NONE")
                     ->select("room_infos.out_room_id","communities.community_id","room_infos.batch_id")
                     ->get();
-                if(!$room_info_set&&!$room_info_sets){
+                if($room_info_set->isEmpty()&&$room_info_sets->isEmpty()){
                     return json_encode([
                         "success"=>0,
                         "msg"=>"该单元下没有可供删除的房屋信息"
                     ]);
                 }
-                if($room_info_set){
+                if(!$room_info_set->isEmpty()){
                     foreach($room_info_set as $k=>$v){
                         RoomInfo::where('out_room_id',$v->out_room_id)->delete();
                         Residentinfo::where('out_room_id',$v->out_room_id)->delete();
                     }
                 }
-               if($room_info_sets){
+               if(!$room_info_sets->isEmpty()){
                    //获取物业公司主账号id
                    $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
                    //获取物业公司授权token
