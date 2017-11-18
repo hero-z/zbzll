@@ -39,7 +39,7 @@ class BillController extends BaseController{
                 ->where($where)
                 ->where($roomwhere)
                 ->select("communities.community_name","communities.alipay_status","communities.basicservice_status","buildings.building_name","units.unit_name","room_infos.room","bills.*")
-                ->orderBy("bills.created_at","DESC")
+                ->orderBy("room_infos.room")
                 ->paginate(8);
             //小区信息
             $communityInfo=Community::whereIn('merchant_id',$merchant_id)->select('community_name','out_community_id')->get();
@@ -105,7 +105,7 @@ class BillController extends BaseController{
                     $excel = $reader->all();
                 })->toArray();
                 foreach ($excel as $k=>$v){
-                    if($k==0){
+                    if($k==0||$v==""){
                         continue;
                     }
                     $data['out_room_id']=$v[1];

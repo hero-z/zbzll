@@ -37,7 +37,7 @@ class RoomInfoController extends BaseController{
                ->where($where)
                ->where($roomwhere)
                ->select("communities.community_name","communities.alipay_status","communities.basicservice_status",'residentinfos.name','residentinfos.phone',"buildings.building_name","units.unit_name","room_infos.*")
-               ->orderBy("room_infos.created_at","DESC")
+               ->orderBy("room_infos.room")
                ->paginate(8);
             //小区信息
            $communityInfo=Community::whereIn('merchant_id',$merchant_id)->select('community_name','out_community_id')->get();
@@ -164,7 +164,7 @@ class RoomInfoController extends BaseController{
                     $excel = $reader->all();
                 })->toArray();
                 foreach($excel as $k=>$v){
-                    if($k==0){
+                    if($k==0||$v[0]==""){
                         continue;
                     }
                         $room['out_community_id']=$out_community_id;
@@ -184,10 +184,7 @@ class RoomInfoController extends BaseController{
                             ->where('room',$room['room'])
                             ->first();
                         if($check){
-                            return json_encode([
-                                'success'=>0,
-                                'msg'=> "第".($k+1)."条信息已存在,请检查是否输入有误!"
-                            ]);
+                           continue;
                         }
                         if( RoomInfo::create($room)&&Residentinfo::create($resident)){
 
