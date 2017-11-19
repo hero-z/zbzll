@@ -63,7 +63,7 @@
                                     @endif
                                 </select>
 
-                                <input class="sky form-control ant-input ant-input-lg" value="@if(isset($room)&&$room){{$room}}@endif" name="room" id="room" type="text" style="width: 200px;margin-left: 10px; float: right;border-radius: 4px" placeholder="请输入房间号">
+                                <input class="sky form-control ant-input ant-input-lg" value="@if(isset($room)&&$room){{$room}}@endif" name="room" id="room" type="text" style="width: 200px;margin-left: 10px; float: right;border-radius: 4px" placeholder="请输入房间号,单元或者住户信息">
                             </div>
                         </div>
                     </div>
@@ -367,6 +367,9 @@
                                     下载模板
                                 </a>
                                 <button type="button"  id="rooms_submit" class="btn btn-outline btn-warning" >批量导入</button>
+                                <a href="" id="errorDown" class="btn btn-outline btn-primary">
+                                    错误信息导出
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -749,6 +752,9 @@
             out_community_id=$("#room_name").val();
             console.log(out_community_id);
             $(this).prop('href',location.protocol+'//'+document.domain+'/merchant/roomExcel?out_community_id='+out_community_id);
+        });
+        $('#errorDown').click(function () {
+            $(this).prop('href',location.protocol+'//'+document.domain+'/merchant/roomerror');
         });
         //单个同步房屋到支付宝
         function uploadRoom(id){

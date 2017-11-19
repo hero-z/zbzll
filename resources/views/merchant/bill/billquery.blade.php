@@ -2,15 +2,28 @@
 @section("title","账单统计")
 @section('css')
     <link href="{{asset('/adminui/css/chosen.css')}}" rel="stylesheet">
+    <link href="{{asset('/adminui/css/plugins/datapicker/datepicker3.css')}}" rel="stylesheet">
 @endsection
 @section("content")
-
     {{--遮罩层--}}
     <div id="mask" class="mask" style="height: 200%"></div>
     <div class="col-sm-12" style="margin-bottom: -20px">
         <div class="ibox col-sm-9">
             <form action="{{url('merchant/billquery')}}" method="post" style="position: relative;margin-top: 20px;">
                 {{csrf_field()}}
+                <div class="form-group" style="float: left" id="data_5">
+                    <div class="input-daterange input-group" id="datepicker">
+                        <input type="text" class="input-sm form-control" id="time_start" name="time_start" placeholder="账单开始日期" value="@if(isset($time_start)){{$time_start or ''}}@endif" />
+                        <span class="input-group-addon">到</span>
+                        <input type="text" class="input-sm form-control" id="time_end" name="time_end" placeholder="账单结束日期" value="@if(isset($time_end)){{$time_end or ''}}@endif" />
+                    </div>
+                </div>
+                <div class="form-group" style="float: left;width: 250px;" id="data_1">
+                    <div class="input-group date">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input type="text" class="form-control" id="time" name="time" placeholder="出账日期" value="@if(isset($time)){{$time or ''}}@endif">
+                    </div>
+                </div>
                 <div class="form-group" style="float: left">
                     <div class="input-group">
                         <div class="form-group" style="float: left">
@@ -19,7 +32,7 @@
                                     <option value="" >请选择员工</option>
                                     @if($merchants)
                                         @foreach($merchants as $v)
-                                            <option value="{{$v->id}}"  @if(isset($mid)&&$mid==$v->id) selected @endif >{{$v->name}}</option>
+                                            <option value="{{$v->id}}"  @if(isset($merchant_id)&&$merchant_id==$v->id) selected @endif >{{$v->name}}</option>
                                         @endforeach
                                     @endif
                                 </select>
@@ -43,6 +56,8 @@
                                     <option value="" >请选择费用类型</option>
                                     <option value="1" @if($bill_cost_type&&$bill_cost_type=='1') selected @endif >物业费</option>
                                     <option value="2" @if($bill_cost_type&&$bill_cost_type=='2') selected @endif >物业费公摊</option>
+                                    <option value="3" @if($bill_cost_type&&$bill_cost_type=='3') selected @endif >垃圾费</option>
+                                    <option value="4" @if($bill_cost_type&&$bill_cost_type=='4') selected @endif >电梯费</option>
                                 </select>
                                 <select name="bill_type" id="bill_type" style="width:250px;">
                                     <option value="" >请选择支付方式</option>
@@ -60,9 +75,9 @@
                         </div>
                     </div>
                 </div>
+
                 <button type="submit" id="'submit" class="btn btn-outline btn-primary" style="margin-left: 10px">筛选</button>
                 <button type="button" onclick="exportdata()" class="btn btn-outline btn-success" style="margin-left: 10px">导出Excel</button>
-
             </form>
         </div>
         <div class="col-sm-3">
@@ -103,7 +118,7 @@
                             @foreach($lists as $v )
                                 <tr class="gradeA">
                                     <td>{{$v->merchant_name}}</td>
-                                    <td>{{$v->community_name}}</td>
+                                    <td>{{$v->community_name.$v->building_name.$v->unit_name}}</td>
                                     <td>{{$v->room}}</td>
                                     <td>{{$v->bill_entry_amount}}</td>
                                     <td>
@@ -116,23 +131,32 @@
                                     <td>
                                         @if($v->cost_type=='property_fee')
                                             物业费
-                                        @endif
-                                        @if($v->cost_type=='public_property_fee')
+                                        @elseif($v->cost_type=='public_property_fee')
                                             物业费公摊
+                                        @elseif($v->cost_type=='rubbish_fee')
+                                            垃圾费
+                                        @elseif($v->cost_type=='elevator_fee')
+                                            电梯费
                                         @endif
                                     </td>
                                     <td>
                                         @if($v->bill_status=="ONLINE")
-                                            已同步
+                                            <span style="color:green;">
+                                             已同步
+                                            </span>
                                         @endif
                                         @if($v->bill_status=="NONE")
-                                            未同步
+                                            <span style="color:grey;">
+                                             未同步
+                                            </span>
                                         @endif
                                         @if($v->bill_status=="UNDERREVIEW"||$v->bill_status=="ONLINE_UNDERREVIEW")
                                             线下结算审核中
                                         @endif
                                         @if($v->bill_status=="TRADE_SUCCESS")
-                                            已结算
+                                            <span style="color: red;">
+                                             已结算
+                                            </span>
                                         @endif
                                     </td>
                                     <td>{{$v->acct_period}}</td>
@@ -157,7 +181,17 @@
             <div class="dataTables_paginate paging_simple_numbers"
                  id="DataTables_Table_0_paginate">
                 @if(isset($lists)&&!$lists->isEmpty())
-                    {{$lists->appends(compact('out_community_id','room'))->render()}}
+                    {{$lists->appends([
+                    'out_community_id'=>isset($out_community_id)?$out_community_id:'',
+                    'room'=>isset($room)?$room:'',
+                    'merchant_id'=>isset($merchant_id)?$merchant_id:'',
+                    'bill_cost_type'=>isset($bill_cost_type)?$bill_cost_type:'',
+                    'bill_type'=>isset($bill_type)?$bill_type:'',
+                    'bill_status'=>isset($bill_status)?$bill_status:'',
+                    'time'=>isset($time)?$time:'',
+                    'time_start'=>isset($time_start)?$time_start:'',
+                    'time_end'=>isset($time_end)?$time_end:''
+                    ])->render()}}
                 @endif
             </div>
         </div>
@@ -166,6 +200,8 @@
 @endsection
 @section('js')
     <script src="{{asset('/adminui/js/chosen.jquery.js')}}"></script>
+    <script src="{{asset('/adminui/js/plugins/datapicker/bootstrap-datepicker.js')}}"></script>
+    <script src="{{asset('/adminui/js/plugins/cropper/cropper.min.js')}}"></script>
     <script>
         $(document).ready(function () {
             render();
@@ -186,16 +222,51 @@
                     room:$('#room').val(),
                     bill_cost_type:$('#bill_cost_type').val(),
                     bill_type:$('#bill_type').val(),
-                    bill_status:$('#bill_status').val()
-//                    time:$('#bill_status').val(),
-//                    time_end:$('#time_end').val(),
-//                    time_start:$('#time_start').val()
+                    bill_status:$('#bill_status').val(),
+                    time:$('#time').val(),
+                    time_end:$('#time_end').val(),
+                    time_start:$('#time_start').val()
                 },
                 function (data) {
                     if(data.success){
                         $('#totalje').text(data.totalje);
                     }
                 }, 'json');
+//            $("#data_1 .input-group.date").datepicker({
+//                minViewMode:1,
+//                keyboardNavigation:!1,
+//                forceParse:1,
+//                autoclose:!0
+////                todayHighlight:!0
+////                startView:1,
+////                showMeridian:true,
+//            });
+            $("#data_1 .input-group.date").datepicker({
+                todayBtn:"linked",
+                keyboardNavigation:!1,
+                forceParse:1,
+                todayHighlight:!0,
+                autoclose:!0,
+                minView:0,
+                minViewMode:0,
+                startView:0
+//                startView:1,
+//                showMeridian:true,
+            });
+            $("#data_5 .input-daterange").datepicker({
+                todayBtn:"linked",
+                keyboardNavigation:!1,
+                forceParse:1,
+                calendarWeeks:!0,
+                todayHighlight:!0,
+                minView:0,
+                minViewMode:0,
+                startView:0,
+                showMeridian:true,
+                autoclose:!0
+            });
+//            $("#data_1 .input-group.date").datepicker('setStartDate',new Date());
+            $("#data_5 .input-daterange").datepicker('setStartDate',new Date());
         });
 
     </script>
@@ -209,6 +280,9 @@
                 +"&bill_type="+$('#bill_type').val()
                 +"&store_type="+$('#store_type').val()
                 +"&bill_status="+$('#bill_status').val()
+                +"&time="+$('#time').val()
+                +"&time_start="+$('#time_start').val()
+                +"&time_end="+$('#time_end').val()
                 +"&export="+1;
         }
         //弹出隐藏层

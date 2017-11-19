@@ -25,8 +25,8 @@
         <div class="col-sm-3">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
-                    <span class="label label-success pull-right">月</span>
-                    <h5>收入</h5>
+                    <span class="label label-success pull-right">查看详情</span>
+                    <h5>总交易额</h5>
                 </div>
                 <div class="ibox-content">
                     <h1 class="no-margins">40 886,200</h1>
@@ -496,19 +496,19 @@
             }, 'json');
     }
     //更新文件
-    function updateFile() {
-        zeroModal.loading(3);
-        $.post("{{route('appUpdateFile')}}", {_token: "{{csrf_token()}}"},
-            function (data) {
-                if (data.status == 200) {
-                    alert(data.msg);
-                } else {
-                    alert(data.msg);
-                }
-                zeroModal.closeAll();
-                window.location.reload();
-            }, 'json');
-    }
+    {{--function updateFile() {--}}
+        {{--zeroModal.loading(3);--}}
+        {{--$.post("{{route('appUpdateFile')}}", {_token: "{{csrf_token()}}"},--}}
+            {{--function (data) {--}}
+                {{--if (data.status == 200) {--}}
+                    {{--alert(data.msg);--}}
+                {{--} else {--}}
+                    {{--alert(data.msg);--}}
+                {{--}--}}
+                {{--zeroModal.closeAll();--}}
+                {{--window.location.reload();--}}
+            {{--}, 'json');--}}
+    {{--}--}}
 </script>
 </body>
 

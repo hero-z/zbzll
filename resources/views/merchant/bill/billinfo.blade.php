@@ -65,7 +65,7 @@
                                     @endif
                                 </select>
 
-                                <input class="sky form-control ant-input ant-input-lg" value="@if(isset($room)&&$room){{$room}}@endif" name="room" id="room" type="text" style="width: 200px;margin-left: 10px; float: right;border-radius: 4px" placeholder="请输入房间号">
+                                <input class="sky form-control ant-input ant-input-lg" value="@if(isset($room)&&$room){{$room}}@endif" name="room" id="room" type="text" style="width: 200px;margin-left: 10px; float: right;border-radius: 4px" placeholder="请输入房间号,单元或者住户信息">
                             </div>
                         </div>
                     </div>
@@ -117,6 +117,12 @@
                                     @endif
                                     @if($v->cost_type=='public_property_fee')
                                         物业费公摊
+                                    @endif
+                                    @if($v->cost_type=='rubbish_fee')
+                                            垃圾费
+                                    @endif
+                                    @if($v->cost_type=='elevator_fee')
+                                            电梯费
                                     @endif
                                     </td>
                                     <td><span style="color: mediumvioletred">{{$v->bill_entry_amount}}</span>元</td>
@@ -272,6 +278,8 @@
                                     <option style="" >请选择费用类型</option>
                                     <option value="property_fee" id="" >物业管理费</option>
                                     <option value="public_property_fee" id="" >物业管理费公摊</option>
+                                    <option value="rubbish_fee" id="" >垃圾费</option>
+                                    <option value="elevator_fee" id="" >电梯费</option>
                                 </select>
                             </div>
                         </div>
@@ -287,13 +295,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group" id="data_4">
+                    <div class="form-group" id="data_5">
                         <div class="ant-col-6 ant-form-item-label">
                             <label class="ant-form-item-required">归属账期</label>
                         </div>
-                        <div class="input-group date" style="width:463px">
-                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                            <input type="text" class="form-control input" value="2017-10-01"  id="acct_period">
+                        <div class="input-daterange input-group" id="datepicker">
+                            <input type="text" class="input-sm form-control" id="time_starts" name="time_start" placeholder="账单开始日期" value="" />
+                            <span class="input-group-addon">到</span>
+                            <input type="text" class="input-sm form-control input" id="time_ends" name="time_end" placeholder="账单结束日期" value="" />
                             <span class="span" style="color:red;font-size: 12px;display: none">请选择归属账期</span>
                         </div>
                     </div>
@@ -399,13 +408,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group" id="data_4">
+                    <div class="form-group" id="data_5">
                         <div class="ant-col-6 ant-form-item-label">
                             <label class="ant-form-item-required">归属账期</label>
                         </div>
-                        <div class="input-group date" style="width:463px">
-                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                            <input type="text" class="form-control input" value="2017-10-01"  id="down_acct_period">
+                        <div class="input-daterange input-group" id="datepicker">
+                            <input type="text" class="input-sm form-control" id="time_start" name="time_start" placeholder="账单开始日期" value="" />
+                            <span class="input-group-addon">到</span>
+                            <input type="text" class="input-sm form-control input" id="time_end" name="time_end" placeholder="账单结束日期" value="" />
                             <span class="span" style="color:red;font-size: 12px;display: none">请选择归属账期</span>
                         </div>
                     </div>
@@ -475,6 +485,8 @@
                                     <option style="" >请选择费用类型</option>
                                     <option value="property_fee" id="" >物业管理费</option>
                                     <option value="public_property_fee" id="" >物业管理费公摊</option>
+                                    <option value="rubbish_fee" id="" >垃圾费</option>
+                                    <option value="elevator_fee" id="" >电梯费</option>
                                 </select>
                             </div>
                         </div>
@@ -784,7 +796,7 @@
                         out_community_id: out_community_id,
                         out_room_id: $("#bill_room").val(),
                         cost_type:$("#cost_type").val(),
-                        acct_period:$("#acct_period").val(),
+                        acct_period:$("#time_starts").val()+"～"+$("#time_ends").val(),
                         release_day:$("#release_day").val(),
                         deadline:$("#deadline").val(),
                         bill_entry_amount:$("#bill_entry_amount").val(),
@@ -850,8 +862,13 @@
             out_community_id=$("#down_community").val();
             building_id=$("#down_building").val();
             unit_id=$("#down_unit").val();
+            down_bill_entry_amount = $("#down_bill_entry_amount").val();
             var obj=$("#down_bill");
             var  ck=true;
+            if(isNaN(down_bill_entry_amount)){
+                layer.msg('单价必须为数字',{time:1000});
+                ck= false;
+            }
             obj.find('.select').each(function () {
                 var select = $(this).val();
                 if ( select == "" ) {
@@ -871,10 +888,9 @@
             });
             if(ck) {
                 unit_id = unit_id;
-                acct_period = $("#down_acct_period").val();
+                acct_period = $("#time_start").val()+"～"+$("#time_end").val();
                 release_day = $("#down_release_day").val();
                 deadline = $("#down_deadline").val();
-                down_bill_entry_amount = $("#down_bill_entry_amount").val();
                 $(this).prop('href', location.protocol + '//' + document.domain + '/merchant/billExcel?unit_id=' + unit_id + "&acct_period=" + acct_period + "&release_day=" + release_day + "&deadline=" + deadline + "&down_bill_entry_amount=" + down_bill_entry_amount);
             }
         });

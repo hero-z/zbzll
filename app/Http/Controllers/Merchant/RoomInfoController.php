@@ -7,6 +7,7 @@ use App\Models\Residentinfo;
 use App\Models\RoomInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
@@ -23,8 +24,12 @@ class RoomInfoController extends BaseController{
         }
         $roomwhere=[];
         $room=$request->room;
+        $unitwhere=[];
+        $residentwhere=[];
         if($room){
             $roomwhere[]=['room_infos.room','like','%'.$room."%"];
+            $unitwhere[]=['units.unit_name','like','%'.$room."%"];
+            $residentwhere[]=['residentinfos.name','like','%'.$room."%"];
         }
        try{
            $merchant_id=CheckMerchantController::CheckMerchant(Auth::guard('merchant')->user()->id);
@@ -36,6 +41,8 @@ class RoomInfoController extends BaseController{
                ->whereIn("communities.merchant_id",$merchant_id)
                ->where($where)
                ->where($roomwhere)
+               ->orwhere($unitwhere)
+               ->orwhere($residentwhere)
                ->select("communities.community_name","communities.alipay_status","communities.basicservice_status",'residentinfos.name','residentinfos.phone',"buildings.building_name","units.unit_name","room_infos.*")
                ->orderBy("room_infos.room")
                ->paginate(8);
@@ -163,6 +170,7 @@ class RoomInfoController extends BaseController{
                    $reader->noHeading();
                     $excel = $reader->all();
                 })->toArray();
+                $errorCheck=[];
                 foreach($excel as $k=>$v){
                     if($k==0||$v[0]==""){
                         continue;
@@ -184,18 +192,22 @@ class RoomInfoController extends BaseController{
                             ->where('room',$room['room'])
                             ->first();
                         if($check){
+                            array_push($v,'数据库中已存在该房间信息');
+                            array_push($v,date("Y-m-d H:i:s"));
+                            $errorCheck[]=$v;
                            continue;
                         }
                         if( RoomInfo::create($room)&&Residentinfo::create($resident)){
 
                         }else{
-                            DB::rollback();
-                            return json_encode([
-                                'success'=>0,
-                                'msg'=>"第".($k+1)."条信息出现异常,请检查是否输入有误!"
-                            ]);
+
+                            array_push($v,'数据异常,无法导入,请仔细检查');
+                            array_push($v,date("Y-m-d H:i:s"));
+                            $errorCheck[]=$v;
+                            continue;
                         }
                 }
+               Cache::store('file')->put("errorCheck",$errorCheck,20);
                 return json_encode([
                     "success"=>1,
                     "msg"=>"批量导入成功"

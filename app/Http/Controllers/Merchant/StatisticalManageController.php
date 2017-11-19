@@ -27,7 +27,7 @@ class StatisticalManageController  extends Controller
         $line='';
         $error='';
         try{
-            $mid=$request->merchant_id;
+            $mid=$merchant_id=$request->merchant_id;
             $out_community_id=$request->out_community_id;
             $room=$request->room;
             $bill_cost_type=$request->bill_cost_type;
@@ -52,6 +52,15 @@ class StatisticalManageController  extends Controller
             if($room){
                 $where[]=['room_infos.room','like','%'.$room.'%'];
             }
+            if($time){
+                $where[]=['bills.release_day',$time];
+            }
+            if($time_start){
+                $where[]=['bills.updated_at','>',date('Y-m-d' . ' ' . ' 00:00:00',strtotime($time_start))];
+            }
+            if($time_end){
+                $where[]=['bills.updated_at','<',date('Y-m-d' . ' ' . ' 23:59:59',strtotime($time_end))];
+            }
             if($bill_cost_type){
                 switch ($bill_cost_type){
                     case 1:
@@ -59,6 +68,12 @@ class StatisticalManageController  extends Controller
                         break;
                     case 2:
                         $where[]=['bills.cost_type','public_property_fee'];
+                        break;
+                    case 3:
+                        $where[]=['bills.cost_type','rubbish_fee'];
+                        break;
+                    case 4:
+                        $where[]=['bills.cost_type','elevator_fee'];
                         break;
                 }
             }
@@ -102,6 +117,8 @@ class StatisticalManageController  extends Controller
             $collcet=DB::table('bills')
                 ->join('communities','bills.out_community_id','communities.out_community_id')
                 ->join('room_infos','bills.out_room_id','room_infos.out_room_id')
+                ->join('buildings','room_infos.building_id','buildings.id')
+                ->join('units','room_infos.unit_id','units.id')
                 ->join('merchants','merchants.id','communities.merchant_id')
                 ->when(!empty($wherestatus),function($q)use($wherestatus){
                     return $q->whereIn('bills.bill_status',$wherestatus);
@@ -113,7 +130,7 @@ class StatisticalManageController  extends Controller
                     return $q->select('bills.bill_entry_amount');
                 })
                 ->when(!$total_amount,function($q){
-                    return $q->select('bills.*','merchants.name as merchant_name','communities.community_name','room_infos.room');
+                    return $q->select('bills.*','buildings.building_name','units.unit_name','merchants.name as merchant_name','communities.community_name','room_infos.room');
                 });
             if($export){
                 try{
@@ -174,11 +191,11 @@ class StatisticalManageController  extends Controller
                     'totalje'=>$totalje,
                 ]);
             }
-            $lists=$collcet
-                ->orderBy('bills.updated_at','DESC')
-                ->paginate(8);
             $count=$collcet->count();
-            return view('merchant.bill.billquery',compact('lists','communityInfo','out_community_id','merchants','room','mid','bill_cost_type','bill_status','bill_type','count'));
+            $lists=$collcet
+                ->orderBy('room_infos.room')
+                ->paginate(8);
+            return view('merchant.bill.billquery',compact('lists','communityInfo','out_community_id','merchants','room','merchant_id','bill_cost_type','bill_status','bill_type','count','time','time_start','time_end'));
         }catch (\Exception $e){
             $error=$e->getMessage();
             $line=$e->getLine();

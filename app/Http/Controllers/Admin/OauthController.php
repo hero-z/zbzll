@@ -53,7 +53,6 @@ class OauthController extends BaseController{
                     "  }");
                 $data = $c->execute($obj);
                 $app_response = $data->alipay_open_auth_token_app_response;
-
                 $model = [
                     "user_id" => $app_response->user_id,
                     "app_auth_token" => $app_response->app_auth_token,

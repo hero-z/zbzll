@@ -25,8 +25,12 @@ class BillController extends BaseController{
         }
         $roomwhere=[];
         $room=$request->room;
+        $unitwhere=[];
+        $residentwhere=[];
         if($room){
             $roomwhere[]=['room_infos.room','like','%'.$room."%"];
+            $unitwhere[]=['units.unit_name','like','%'.$room."%"];
+            $residentwhere[]=['bills.remark_str','like','%'.$room."%"];
         }
         try{
             $merchant_id=CheckMerchantController::CheckMerchant(Auth::guard('merchant')->user()->id);
@@ -38,6 +42,8 @@ class BillController extends BaseController{
                 ->whereIn("communities.merchant_id",$merchant_id)
                 ->where($where)
                 ->where($roomwhere)
+                ->orwhere($unitwhere)
+                ->orwhere($residentwhere)
                 ->select("communities.community_name","communities.alipay_status","communities.basicservice_status","buildings.building_name","units.unit_name","room_infos.room","bills.*")
                 ->orderBy("room_infos.room")
                 ->paginate(8);
@@ -174,6 +180,12 @@ class BillController extends BaseController{
                     if($bill_set[$k]->cost_type=="public_property_fee"){
                         $bill_set[$k]->cost_type="物业管理费公摊";
                     }
+                    if($bill_set[$k]->cost_type=="rubbish_fee"){
+                        $bill_set[$k]->cost_type="垃圾费";
+                    }
+                    if($bill_set[$k]->cost_type=="elevator_fee"){
+                        $bill_set[$k]->cost_type="电梯费";
+                    }
                 }
                 $community=Community::where('out_community_id',$out_community_id)->first();
                 $data['batch_id'] = time() . date("YmdHis") . rand(1000000, 9999999);
@@ -235,7 +247,7 @@ class BillController extends BaseController{
                 $bill_set=DB::table('bills')
                     ->join('room_infos','bills.out_room_id',"=","room_infos.out_room_id")
                     ->join('units',"room_infos.unit_id","=",'units.id')
-                    ->whereIn('bills.cost_type',["property_fee","public_property_fee"])
+                    ->whereIn('bills.cost_type',["property_fee","public_property_fee","rubbish_fee","elevator_fee"])
                     ->where("units.id",$unit_id)
                     ->where("bill_status","NONE")
                     ->select("bills.out_room_id","bills.bill_entry_id","bills.cost_type","bills.bill_entry_amount","bills.acct_period","bills.release_day","bills.deadline","bills.remark_str")
@@ -256,6 +268,12 @@ class BillController extends BaseController{
                     }
                     if($bill_set[$k]->cost_type=="public_property_fee"){
                         $bill_set[$k]->cost_type="物业管理费公摊";
+                    }
+                    if($bill_set[$k]->cost_type=="rubbish_fee"){
+                        $bill_set[$k]->cost_type="垃圾费";
+                    }
+                    if($bill_set[$k]->cost_type=="elevator_fee"){
+                        $bill_set[$k]->cost_type="电梯费";
                     }
                 }
                 $community=Community::where('out_community_id',$out_community_id)->first();

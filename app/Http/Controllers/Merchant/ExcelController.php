@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Merchant;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -37,7 +38,7 @@ class ExcelController extends Controller{
             ->get();
         $data[]=['房间',"物业系统编号",'归属账期','出账日期',"房屋面积",'应收金额',"截止日期"];
         foreach($info as $k => $v){
-            $data[]=[$info[$k]->room,$info[$k]->out_room_id,$acct_period,$release_day,$info[$k]->area,number_format($info[$k]->area,2)*number_format($down_bill_entry_amount,2),$deadline];
+            $data[]=[$info[$k]->room,$info[$k]->out_room_id,$acct_period,$release_day,$info[$k]->area,sprintf("%.2f", number_format($info[$k]->area,2)*number_format($down_bill_entry_amount,2)),$deadline];
         }
         Excel::create(iconv('utf-8','gbk','账单导入模板'),function($excel) use ($data){
             $excel->sheet('score', function($sheet) use ($data){
@@ -52,6 +53,33 @@ class ExcelController extends Controller{
                     "G"     =>  20,
                 ));
             });
+        })->export('xls');
+    }
+    //错误信息导出
+    public function roomError(Request $request)
+    {
+        $data=[];
+        $data[]=["房间号",'面积',"屋主","联系方式","错误信息",'操作时间'];
+        $error=Cache::store('file')->get("errorCheck");
+        if($error){
+            foreach ($error as $k=>$v){
+                $data[]=$v;
+            }
+        }
+        Cache::store('file')->forget('errorCheck');
+        Excel::create(iconv('utf-8','gbk','错误信息'),function($excel) use ($data){
+            $excel->sheet('score', function($sheet) use ($data){
+                $sheet->rows($data);
+                $sheet->setWidth(array(
+                    'A'     =>  20,
+                    'B'     =>  20,
+                    "C"     =>  20,
+                    "D"     =>  20,
+                    "E"     =>  60,
+                    'F'     =>  40
+                ));
+            });
+
         })->export('xls');
     }
 }
