@@ -9,7 +9,7 @@
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
                     @if($pid=='0')
-                    @permission('addMerchant')
+                    @mpermission('addMerchant')
                     <div style="display: block;float: left;">
                         <button  id="add-factor" type="button" onclick="ShowDiv('addUser_box','mask')"
                                  class="btn btn-outline btn-success">添加员工
@@ -49,7 +49,7 @@
                                     <td class="center">
                                         @if($v->id!=Auth::guard('merchant')->user()->id)
                                         @if($pid=='0')
-                                        @permission("assignCommunity")
+                                        @mpermission("assignCommunity")
                                         <button type="button" onclick="ShowDiv('assign_community','mask');getCommunity({{$v->id}})"
                                                 class="btn jurisdiction btn-outline btn-success">分配小区
                                         </button>

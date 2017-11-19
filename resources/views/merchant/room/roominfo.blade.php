@@ -69,14 +69,14 @@
                     </div>
                 </div>
                 <button type="submit" id="'submit" class="btn btn-outline btn-primary" style="margin-left: 10px">筛选</button>
-                @permission('addRoom')
+                @mpermission('addRoom')
                 <button class="btn btn-outline btn-primary " type="button" onclick="ShowDiv('add_room','mask')" style="float: right">批量导入房屋</button>
                 <button type="button" onclick="ShowRom('add_rom','mask')"  class="btn btn-outline btn-warning" style="float: right;margin-right: 15px;">添加房屋</button>
                 @endpermission
-                @permission('uploadRoom')
+                @mpermission('uploadRoom')
                 <button class="btn btn-outline btn-default" type="button" onclick="ShowDiv('room_async','mask')" style="float: right;margin-right: 15px;">批量同步</button>
                 @endpermission
-                @permission('delRoom')
+                @mpermission('delRoom')
                 <button class="btn btn-outline btn-danger" type="button" onclick="ShowDiv('delRoom','mask')" style="float: right;margin-right: 15px;">批量删除</button>
                 @endpermission
             </form>
@@ -120,13 +120,13 @@
                                     <td>{{$v->created_at}}</td>
                                     <td class="center">
                                         @if($v->status=="NONE"&&$v->alipay_status!="NONE"&&$v->alipay_status!="OFFLINE"&&$v->basicservice_status!="NONE"&&$v->basicservice_status!="OFFLINE")
-                                        @permission('uploadRoom')
+                                        @mpermission('uploadRoom')
                                         <button type="button" onclick='uploadRoom("{{$v->id}}")'
                                                 class="btn jurisdiction btn-outline btn-success">同步至支付宝
                                         </button>
                                         @endpermission
                                         @endif
-                                        @permission('delRoom')
+                                        @mpermission('delRoom')
                                         <button type="button" onclick='del("{{$v->out_room_id}}")'
                                                 class="btn btn-outline btn-danger">删除
                                         </button>

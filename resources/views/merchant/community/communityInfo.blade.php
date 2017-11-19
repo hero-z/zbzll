@@ -8,7 +8,7 @@
         <div class="col-sm-12">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
-                    @permission('createCommunity')
+                    @mpermission('createCommunity')
                     <div style="display: block;float: left;">
                         <button  id="add-factor" type="button" onclick="ShowDiv('add_community','mask')"
                                  class="btn btn-outline btn-success">添加小区
@@ -70,32 +70,32 @@
                                     <td>{{$v->created_at}}</td>
                                     <td class="center">
                                         @if($v->basicservice_status!='NONE')
-                                        @permission('codeImage')
+                                        @mpermission('codeImage')
                                         <button type="button" onclick='CodeImage("{{$v->community_id}}")'
                                                 class="btn jurisdiction btn-outline btn-warning btn-sm">测试支付码
                                         </button>
                                         @endpermission
                                         @endif
-                                        @permission("uploadCommunity")
+                                        @mpermission("uploadCommunity")
                                         @if($v->alipay_status!='ONLINE'&&$v->alipay_status!='PENDING_ONLINE'&&$v->alipay_status!="OFFLINE")
                                         <button type="button" onclick='uploadCommunity("{{$v->id}}")'
                                                 class="btn  btn-outline btn-info btn-sm">同步支付宝
                                         </button>
                                         @endif
                                         @endpermission
-                                        @permission("initializeBasicService")
+                                        @mpermission("initializeBasicService")
                                         @if($v->alipay_status=='ONLINE'||$v->alipay_status=='PENDING_ONLINE')
                                         <button type="button" onclick="initializeBasicService('{{$v->id}}')"
                                                 class="btn jurisdiction btn-outline btn-primary btn-sm">初始化服务
                                         </button>
                                         @endif
                                         @endpermission
-                                        @permission("editCommunity")
+                                        @mpermission("editCommunity")
                                         <button type="button" onclick="ShowDiv('amend_community','mask');getCommunity({{$v->id}})"
                                                 class="btn  btn-outline btn-success btn-sm">编辑
                                         </button>
                                         @endpermission
-                                        @permission('delCommunity')
+                                        @mpermission('delCommunity')
                                         @if($v->alipay_status=="NONE")
                                         <button type="button" onclick='del("{{$v->id}}")'
                                                 class="btn btn-outline btn-danger btn-sm">删除
@@ -220,9 +220,9 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <input type="text" id="account" name="account" placeholder="请输入物业签约支付宝账号"
+                                <input type="text" id="account" name="account" placeholder="请输入物业签约支付宝账号pid,2088开头"
                                        class="input ant-input ant-input-lg" required="required">
-                                <span style="color:red;font-size:12px;display: none" id="span6">*请输入物业签约支付宝账号</span>
+                                <span style="color:red;font-size:12px;display: none" id="span6">*请输入物业签约支付宝账号pid</span>
                             </div>
                         </div>
                     </div>

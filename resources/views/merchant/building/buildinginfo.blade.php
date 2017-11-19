@@ -30,7 +30,7 @@
                     </div>
                 </div>
                 <button type="submit" id="'submit" class="btn btn-outline btn-primary" style="margin-left: 10px">筛选</button>
-                @permission('addBuilding')
+                @mpermission('addBuilding')
                 <button type="button" class="btn btn-outline btn-warning"   onclick="ShowDiv('add_building','mask')" style="float: right">添加楼宇</button>
                 @endpermission
             </form>
@@ -66,7 +66,7 @@
                                         <button type="button" onclick='ShowDiv("building_amend","mask");getbuilding("{{$v->id}}")'
                                                 class="btn jurisdiction btn-outline btn-success">编辑
                                         </button>
-                                        @permission('deleteBuilding')
+                                        @mpermission('deleteBuilding')
                                         @if($v->alipay_status=='NONE'&&$v->basicservice_status=='NONE')
                                             <button type="button" onclick='del("{{$v->id}}")'
                                                     class="btn btn-outline btn-danger">删除

@@ -71,14 +71,14 @@
                     </div>
                 </div>
                 <button type="submit" id="'submit" class="btn btn-outline btn-primary" style="margin-left: 10px">筛选</button>
-                @permission('addBill')
+                @mpermission('addBill')
                 <button class="btn btn-outline btn-primary " type="button" onclick="ShowDiv('add_bills','mask')" style="float: right">批量导入账单</button>
                 <button type="button" onclick="ShowDiv('down_bill','mask')"
                         class="btn  btn-outline btn-success" style="float: right;margin-right: 15px;">下载模板
                 </button>
                 <button type="button" onclick="ShowRom('add_bill','mask')"  class="btn btn-outline btn-warning" style="float: right;margin-right: 15px;">添加账单</button>
                 @endpermission
-                @permission('uploadBill')
+                @mpermission('uploadBill')
                 <button class="btn btn-outline btn-default" type="button" onclick="ShowDiv('bill_async','mask')" style="float: right;margin-right: 15px;">批量同步</button>
                 @endpermission
             </form>
@@ -149,19 +149,19 @@
                                     <td>{{$v->created_at}}</td>
                                     <td class="center">
                                         @if($v->bill_status=="NONE"&&$v->alipay_status!="NONE"&&$v->alipay_status!="OFFLINE"&&$v->basicservice_status!="NONE"&&$v->basicservice_status!="OFFLINE")
-                                           @permission('uploadBill')
+                                           @mpermission('uploadBill')
                                             <button type="button" onclick='uploadBill("{{$v->id}}","{{$v->out_community_id}}")'
                                                     class="btn jurisdiction btn-outline btn-success">同步至支付宝
                                             </button>
                                             @endpermission
                                         @endif
                                         @if($v->bill_status!='ONLINE_UNERREVIEW'&&$v->bill_status!='UNERREVIEW'&&$v->bill_status!='SUCCESS'&&Auth::guard('merchant')->user()->pid!=0)
-                                        @permission('editLineBill')
+                                        @mpermission('editLineBill')
                                         <button type="button" onclick='editLineBill("{{$v->id}}","{{$v->bill_status}}")'
                                                 class="btn btn-outline btn-success">线下结算
                                         </button>
                                         @endpermission
-                                        @permission('questionBill')
+                                        @mpermission('questionBill')
                                         <button type="button" onclick='ShowDiv("questionBill","mask");questionBill("{{$v->id}}")'
                                                 class="btn btn-outline btn-default">账单存疑
                                         </button>

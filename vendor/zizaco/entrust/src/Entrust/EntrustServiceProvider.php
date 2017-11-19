@@ -75,6 +75,10 @@ class EntrustServiceProvider extends ServiceProvider
             return "<?php if (Auth::guard('admin')->user()?Auth::guard('admin')->user()->can({$expression}):Auth::guard('merchant')->user()->can({$expression})) : ?>";
 /*            return "<?php if (\\Entrust::can({$expression})) : ?>";*/
         });
+        \Blade::directive('mpermission', function($expression) {
+            return "<?php if (Auth::guard('merchant')->user()->can({$expression})) : ?>";
+            /*            return "<?php if (\\Entrust::can({$expression})) : ?>";*/
+        });
 
         \Blade::directive('endpermission', function($expression) {
             return "<?php endif; // Entrust::can ?>";

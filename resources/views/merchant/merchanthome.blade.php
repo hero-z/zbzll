@@ -50,7 +50,7 @@
                             </li>
                         </ul>
                     </li>
-                    @permission('buildingManage')
+                    @mpermission('buildingManage')
                     <li>
                         <a href="#">
                             <i class="glyphicon glyphicon-stats"></i>
@@ -76,7 +76,7 @@
                             </li>
                         </ul>
                     </li>
-                    @permission('householdManage')
+                    @mpermission('householdManage')
                     <li>
                         <a href="#">
                             <i class="glyphicon glyphicon-user"></i>
