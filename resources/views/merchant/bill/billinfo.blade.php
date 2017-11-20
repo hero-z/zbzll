@@ -1,5 +1,5 @@
 @extends("layouts.merchantcontent")
-@section("title","房屋管理")
+@section("title","账单管理")
 @section('css')
     <link href="{{asset('/adminui/css/chosen.css')}}" rel="stylesheet">
     <link href="{{asset('/adminui/css/amazeui.chosen.css')}}" rel="stylesheet">
@@ -92,17 +92,14 @@
                         <thead>
                         <tr>
                             <th >所属小区</th>
+                            <th>楼宇</th>
+                            <th>单元</th>
                             <th >归属房屋</th>
-                            <th >费用类型</th>
-                            <th>应收金额</th>
-                            <th >归属账期</th>
-                            <th >出账日期</th>
-                            <th>截止日期</th>
-                            <th >缴费标识</th>
-                            <th>状态</th>
-                            <th>支付类型</th>
-                            <th >导入日期</th>
-                            <th >操作</th>
+                            <th>应缴金额</th>
+                            <th>已缴金额</th>
+                            <th >房主</th>
+                            <th>未同步账单条数</th>
+                            <th >账单操作</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -110,70 +107,22 @@
                             @foreach($billInfo as $v )
                                 <tr class="gradeA">
                                     <td>{{$v->community_name}}</td>
-                                    <td>{{$v->building_name}}{{$v->unit_name}}{{$v->room}}</td>
-                                    <td>
-                                    @if($v->cost_type=='property_fee')
-                                        物业费
-                                    @endif
-                                    @if($v->cost_type=='public_property_fee')
-                                        物业费公摊
-                                    @endif
-                                    @if($v->cost_type=='rubbish_fee')
-                                            垃圾费
-                                    @endif
-                                    @if($v->cost_type=='elevator_fee')
-                                            电梯费
-                                    @endif
-                                    </td>
-                                    <td><span style="color: mediumvioletred">{{$v->bill_entry_amount}}</span>元</td>
-                                    <td>{{$v->acct_period}}</td>
-                                    <td>{{$v->release_day}}</td>
-                                    <td>{{$v->deadline}}</td>
-                                    <td>{{$v->remark_str}}</td>
-                                    <td>
-                                        @if($v->bill_status=="ONLINE")
-                                            <span style="color: green">已同步</span>
-                                        @endif
-                                        @if($v->bill_status=="NONE")
-                                               未同步
-                                        @endif
-                                        @if($v->bill_status=="UNDERREVIEW"||$v->bill_status=="ONLINE_UNDERREVIEW")
-                                          线下结算审核中
-                                        @endif
-                                        @if($v->bill_status=="TRADE_SUCCESS")
-                                           <span style="color:red">已结算</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($v->type=='alipay')
-                                            物业官方支付宝
-                                        @endif
-                                        @if($v->type=='money')
-                                            现金
-                                        @endif
-                                    </td>
-                                    <td>{{$v->created_at}}</td>
+                                    <td>{{$v->building_name}}</td>
+                                    <td>{{$v->unit_name}}</td>
+                                    <td>{{$v->room}}</td>
+                                    <td><span style="color: mediumvioletred ;font-size:18px">{{$v->total}}</span>元</td>
+                                    <td><span style="color: red;font-size:18px">{{$v->success}}</span>元</td>
+                                    <td>{{$v->name}}</td>
+                                    <td><span style="color: red;font-size:18px">{{$v->count}}</span>条</td>
                                     <td class="center">
-                                        @if($v->bill_status=="NONE"&&$v->alipay_status!="NONE"&&$v->alipay_status!="OFFLINE"&&$v->basicservice_status!="NONE"&&$v->basicservice_status!="OFFLINE")
-                                           @mpermission('uploadBill')
-                                            <button type="button" onclick='uploadBill("{{$v->id}}","{{$v->out_community_id}}")'
-                                                    class="btn jurisdiction btn-outline btn-success">同步至支付宝
+                                        <a  href="{{url("merchant/billdescription?out_room_id=").$v->out_room_id}}" class="btn btn-outline btn-primary">
+                                            详情
+                                        </a>
+                                        @mpermission('addBill')
+                                            <button type="button" onclick="ShowRom('add','mask');add('{{$v->out_room_id}}','{{$v->out_community_id}}')"
+                                                    class="btn jurisdiction btn-outline btn-default">新增
                                             </button>
-                                            @endpermission
-                                        @endif
-                                        @if($v->bill_status!='ONLINE_UNERREVIEW'&&$v->bill_status!='UNERREVIEW'&&$v->bill_status!='SUCCESS'&&Auth::guard('merchant')->user()->pid!=0)
-                                        @mpermission('editLineBill')
-                                        <button type="button" onclick='editLineBill("{{$v->id}}","{{$v->bill_status}}")'
-                                                class="btn btn-outline btn-success">线下结算
-                                        </button>
                                         @endpermission
-                                        @mpermission('questionBill')
-                                        <button type="button" onclick='ShowDiv("questionBill","mask");questionBill("{{$v->id}}")'
-                                                class="btn btn-outline btn-default">账单存疑
-                                        </button>
-                                        @endpermission
-                                         @endif
-
                                     </td>
                                 </tr>
                             @endforeach
@@ -217,7 +166,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select name="" id="bill_community" class="select" style="width:250px;" data-am-selected="{searchBox: 1}">
+                                <select name="" id="bill_community" class="select" style="width:250px;" data-am-selected="{searchBox: 1,maxHeight: 200}">
                                     <option value="">请选择小区名称</option>
                                     @if($communityInfo)
                                         @foreach($communityInfo as $v)
@@ -235,7 +184,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select data-am-selected="{searchBox: 1}" id="bill_building" class="select">
+                                <select data-am-selected="{searchBox: 1,maxHeight: 200}" id="bill_building" class="select">
                                     <option value="" id="">请选择房屋所在楼栋</option>
                                 </select>
                             </div>
@@ -247,7 +196,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select name="" id="bill_unit"  data-am-selected="{searchBox: 1}" class="select">
+                                <select name="" id="bill_unit"  data-am-selected="{searchBox: 1,maxHeight: 200}" class="select">
                                     <option value="" id="" >请选择房屋所在单元</option>
                                 </select>
                             </div>
@@ -260,7 +209,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select name="" id="bill_room"  data-am-selected="{searchBox: 1}" class="select">
+                                <select name="" id="bill_room"  data-am-selected="{searchBox: 1,maxHeight: 200}" class="select">
                                     <option value="" id="" >请输入房屋所在房号</option>
                                 </select>
                             </div>
@@ -286,12 +235,12 @@
                     </div>
                     <div class="ant-row ant-form-item">
                         <div class="ant-col-6 ant-form-item-label">
-                            <label class="ant-form-item-required">金额</label>
+                            <label class="ant-form-item-required">每月应收金额</label>
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
                                 <input type="text" id="bill_entry_amount" name="bill_entry_amount" class="input ant-input ant-input-lg" placeholder="请输入金额" style="width:463px">
-                                <span class="span" style="color:red;font-size: 12px;display: none">请输入金额</span>
+                                <span class="span" style="color:red;font-size: 12px;display: none">请输入每月应收金额</span>
                             </div>
                         </div>
                     </div>
@@ -312,7 +261,7 @@
                         </div>
                         <div class="input-group date" style="width:463px">
                             <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                            <input type="text" class="form-control input" value="2017-10-01" id="release_day">
+                            <input type="text" class="form-control input"  placeholder="请选择出账日期" value="" id="release_day">
                             <span class="span" style="color:red;font-size: 12px;display: none">请选择出账日期</span>
                         </div>
                     </div>
@@ -322,7 +271,7 @@
                         </div>
                         <div class="input-group date" style="width:463px">
                             <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                            <input type="text" class="form-control input" value="2017-10-01" id="deadline">
+                            <input type="text" class="form-control input" placeholder="请选择截止日期"  value="" id="deadline">
                             <span class="span" style="color:red;font-size: 12px;display: none">请选择截止日期</span>
                         </div>
                     </div>
@@ -353,6 +302,102 @@
             </div>
         </div>
     </div>
+    {{--新增--}}
+    <div id="add" class="ant-modal" style="width: 900px; transform-origin: 1054px 10px 0px;display: none">
+        <div class="ant-modal-content">
+            <button class="ant-modal-close"  onclick="CloseDiv('add','mask')">
+                <span class="ant-modal-close-x" ></span>
+            </button>
+            <div class="ant-modal-header">
+                <div class="ant-modal-title">新增账单</div>
+            </div>
+            <div class="ant-modal-body">
+                <form class="ant-form ant-form-horizontal">
+                    <div class="ant-row ant-form-item">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label class="ant-form-item-required">费用类型</label>
+                        </div>
+                        <div class="ant-col-16 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <select name="" id="add_cost_type" class="ant-input select" style="width: 80%;color: #9e9e9e">
+                                    <option style="" >请选择费用类型</option>
+                                    <option value="property_fee" id="" >物业管理费</option>
+                                    <option value="public_property_fee" id="" >物业管理费公摊</option>
+                                    <option value="rubbish_fee" id="" >垃圾费</option>
+                                    <option value="elevator_fee" id="" >电梯费</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label class="ant-form-item-required">每月应收金额</label>
+                        </div>
+                        <div class="ant-col-16 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <input type="text" id="add_bill_entry_amount" name="bill_entry_amount" class="input ant-input ant-input-lg" placeholder="请输入金额" style="width:463px">
+                                <span class="span" style="color:red;font-size: 12px;display: none">请输入每月应收金额</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="data_5">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label class="ant-form-item-required">归属账期</label>
+                        </div>
+                        <div class="input-daterange input-group" id="datepicker">
+                            <input type="text" class="input-sm form-control" id="add_time_starts" name="time_start" placeholder="账单开始日期" value="" />
+                            <span class="input-group-addon">到</span>
+                            <input type="text" class="input-sm form-control input" id="add_time_ends" name="time_end" placeholder="账单结束日期" value="" />
+                            <span class="span" style="color:red;font-size: 12px;display: none">请选择归属账期</span>
+                        </div>
+                    </div>
+                    <div class="form-group" id="data_3">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label class="ant-form-item-required">出账日期</label>
+                        </div>
+                        <div class="input-group date" style="width:463px">
+                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                            <input type="text" class="form-control input"  placeholder="请选择出账日期" value="" id="add_release_day">
+                            <span class="span" style="color:red;font-size: 12px;display: none">请选择出账日期</span>
+                        </div>
+                    </div>
+                    <div class="form-group" id="data_3">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label class="ant-form-item-required">截止日期</label>
+                        </div>
+                        <div class="input-group date" style="width:463px">
+                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                            <input type="text" class="form-control input" placeholder="请选择截止日期"  value="" id="add_deadline">
+                            <span class="span" style="color:red;font-size: 12px;display: none">请选择截止日期</span>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label class="ant-form-item-required">推送备注</label>
+                        </div>
+                        <div class="ant-col-16 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <input type="text" style="width:463px" id="add_remark_str" name="remark_str" class=" input ant-input ant-input-lg" placeholder="请输入推送备注">
+                                <span class="span" style="color:red;font-size: 12px;display: none">请输入推送备注</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="ant-row ant-form-item modal-btn form-button"
+                         style="margin-top: 24px; text-align: center;">
+                        <div class="ant-col-22 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <button type="button" class="ant-btn ant-btn-primary ant-btn-lg" id="add_bill_submit"><span>提交</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     {{--下载模板--}}
     <div id="down_bill" class="ant-modal" style="width: 900px; transform-origin: 1054px 10px 0px;display: none">
         <div class="ant-modal-content">
@@ -372,7 +417,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select name="" id="down_community" class="select" style="width:250px;" data-am-selected="{searchBox: 1}">
+                                <select name="" id="down_community" class="select" style="width:250px;" data-am-selected="{searchBox: 1,maxHeight: 200}">
                                     <option value="">请选择小区名称</option>
                                     @if($communityInfo)
                                         @foreach($communityInfo as $v)
@@ -390,7 +435,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select data-am-selected="{searchBox: 1}" id="down_building" class="select">
+                                <select data-am-selected="{searchBox: 1,maxHeight: 200}" id="down_building" class="select">
                                     <option value="" id="">请选择房屋所在楼栋</option>
                                 </select>
                             </div>
@@ -402,7 +447,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select name="" id="down_unit"  data-am-selected="{searchBox: 1}" class="select">
+                                <select name="" id="down_unit"  data-am-selected="{searchBox: 1,maxHeight: 200}" class="select">
                                     <option value="" id="" >请选择房屋所在单元</option>
                                 </select>
                             </div>
@@ -425,7 +470,7 @@
                         </div>
                         <div class="input-group date" style="width:463px">
                             <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                            <input type="text" class="form-control input" value="2017-10-01" id="down_release_day">
+                            <input type="text" class="form-control input" value="" placeholder="请选择出账日期"  id="down_release_day">
                             <span class="span" style="color:red;font-size: 12px;display: none">请选择出账日期</span>
                         </div>
                     </div>
@@ -435,7 +480,7 @@
                         </div>
                         <div class="input-group date" style="width:463px">
                             <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                            <input type="text" class="form-control input" value="2017-10-01" id="down_deadline">
+                            <input type="text" class="form-control input" value=""  placeholder="请选择截止日期" id="down_deadline">
                             <span class="span" style="color:red;font-size: 12px;display: none">请选择截止日期</span>
                         </div>
                     </div>
@@ -523,6 +568,9 @@
                         <div class="ant-col-22 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
                                 <button type="button"  id="bills_submit" class="btn btn-outline btn-warning" >批量导入</button>
+                                <a href="" id="errorDown" class="btn btn-outline btn-primary">
+                                    错误信息导出
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -547,7 +595,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="upload_community"    data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="upload_community"    data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="">请选择小区名称</option>
                                     @if($communityInfo)
                                         @foreach($communityInfo as $v)
@@ -566,7 +614,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" data-am-selected="{searchBox: 1}" id="upload_building">
+                                <select class="select" data-am-selected="{searchBox: 1,maxHeight: 200}" id="upload_building">
                                     <option value="" id="">请选择房屋所在楼栋</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在楼栋</span>
@@ -580,7 +628,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="upload_unit"  data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="upload_unit"  data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="" id="unit" >请选择房屋所在单元</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在单元</span>
@@ -592,57 +640,6 @@
                             <div class="ant-form-item-control ">
 
                                 <button type="button"  id="bills_upload" class="btn btn-outline btn-warning" >批量同步</button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    {{--账单存疑管理--}}
-    {{--添加账单--}}
-    <div id="questionBill" class="ant-modal" style="width: 900px; transform-origin: 1054px 10px 0px;display: none">
-        <div class="ant-modal-content">
-            <button class="ant-modal-close"  onclick="CloseDiv('questionBill','mask')">
-                <span class="ant-modal-close-x" ></span>
-            </button>
-            <div class="ant-modal-header">
-                <div class="ant-modal-title">矫正账单申请</div>
-            </div>
-            <div class="ant-modal-body">
-                <form class="ant-form ant-form-horizontal">
-                    <input type="hidden" value="simple" name="type" id="bill_id">
-
-                    <div class="ant-row ant-form-item">
-                        <div class="ant-col-6 ant-form-item-label">
-                            <label class="ant-form-item-required">矫正后金额</label>
-                        </div>
-                        <div class="ant-col-16 ant-form-item-control-wrapper">
-                            <div class="ant-form-item-control ">
-                                <input type="text" style="width:463px" id="correct_bill_amount" name="" class=" input ant-input ant-input-lg" placeholder="请输入矫正后金额">
-                                <span class="span" style="color:red;font-size: 12px;display: none">请输入矫正后金额</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="ant-row ant-form-item">
-                        <div class="ant-col-6 ant-form-item-label">
-                            <label class="ant-form-item-required">描述</label>
-                        </div>
-                        <div class="ant-col-16 ant-form-item-control-wrapper">
-                            <div class="ant-form-item-control ">
-                                <input type="text" style="width:463px" id="description" name="" class=" input ant-input ant-input-lg" placeholder="请输入描述">
-                                <span class="span" style="color:red;font-size: 12px;display: none">请输入描述</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="ant-row ant-form-item modal-btn form-button"
-                         style="margin-top: 24px; text-align: center;">
-                        <div class="ant-col-22 ant-form-item-control-wrapper">
-                            <div class="ant-form-item-control ">
-                                <button type="button" class="ant-btn ant-btn-primary ant-btn-lg" id="question_bill_submit"><span>提交申请</span>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -699,6 +696,7 @@
             function render() {
                 $('body').css('overflow-y','scroll');
                 $('#out_community_id').chosen();
+                $('.chosen-results').css('max-height','250px');
             }
         });
         //添加账单 传out_community_id
@@ -796,7 +794,8 @@
                         out_community_id: out_community_id,
                         out_room_id: $("#bill_room").val(),
                         cost_type:$("#cost_type").val(),
-                        acct_period:$("#time_starts").val()+"～"+$("#time_ends").val(),
+                        time_start:$("#time_starts").val(),
+                        time_end:$("#time_ends").val(),
                         release_day:$("#release_day").val(),
                         deadline:$("#deadline").val(),
                         bill_entry_amount:$("#bill_entry_amount").val(),
@@ -815,6 +814,57 @@
             }
 
         });
+        //新增
+        //添加账单
+        function add(out_room_id,out_community_id){
+            $('#add_bill_submit').click(function () {
+                var obj=$("#add");
+                var  ck=true;
+                obj.find('.select').each(function () {
+                    var select = $(this).val();
+                    if ( select == "" ) {
+                        layer.msg('请选择费用类型',{time:1000});
+                        ck= false;
+                    }
+                });
+                obj.find('.input').each(function () {
+                    var val = $(this).val();
+                    if (val == "") {
+                        $(this).focus().css({
+                            "border": "1px solid red"
+                        });
+                        $(this).next().show();
+                        ck= false;
+                    }
+                });
+                if(ck) {
+                    $.post("{{url('merchant/addbill')}}", {
+                            _token: "{{csrf_token()}}",
+                            out_room_id: out_room_id,
+                            out_community_id:out_community_id,
+                            cost_type:$("#add_cost_type").val(),
+                            time_start:$("#add_time_starts").val(),
+                            time_end:$("#add_time_ends").val(),
+                            release_day:$("#add_release_day").val(),
+                            deadline:$("#add_deadline").val(),
+                            bill_entry_amount:$("#add_bill_entry_amount").val(),
+                            remark_str:$("#add_remark_str").val()
+                        },
+                        function (data) {
+                            if (data.success) {
+                                layer.msg(data.msg, {time: 500});
+                                setTimeout(function () {
+                                    window.location.reload()
+                                }, 500);
+                            } else {
+                                layer.msg(data.msg, {time: 2000});
+                            }
+                        }, 'json');
+                }
+
+            });
+        }
+
         //下载模板
         $('#down_community').change(function () {
             $('.unit_down').remove();
@@ -888,10 +938,11 @@
             });
             if(ck) {
                 unit_id = unit_id;
-                acct_period = $("#time_start").val()+"～"+$("#time_end").val();
+                time_start= $("#time_start").val();
+                time_end=$("#time_end").val();
                 release_day = $("#down_release_day").val();
                 deadline = $("#down_deadline").val();
-                $(this).prop('href', location.protocol + '//' + document.domain + '/merchant/billExcel?unit_id=' + unit_id + "&acct_period=" + acct_period + "&release_day=" + release_day + "&deadline=" + deadline + "&down_bill_entry_amount=" + down_bill_entry_amount);
+                $(this).prop('href', location.protocol + '//' + document.domain + '/merchant/billExcel?unit_id=' + unit_id + "&time_start=" + time_start+'&time_end='+time_end + "&release_day=" + release_day + "&deadline=" + deadline + "&down_bill_entry_amount=" + down_bill_entry_amount);
             }
         });
 
@@ -933,25 +984,6 @@
             }
 
         });
-        //下载模板
-        //单个同步房屋到支付宝
-        function uploadBill(id,out_community_id){
-            layer.confirm('确定同步账单信息到支付宝吗?', {
-                btn: ['确定', '取消'] //按钮
-            }, function () {
-                $.post("{{url('merchant/uploadbill')}}", {_token: "{{csrf_token()}}", id: id ,out_community_id:out_community_id},
-                    function (data) {
-                        if (data.success) {
-                            layer.msg(data.msg,{time:500});
-                            setTimeout(function(){window.location.reload()},500);
-                        } else {
-                            layer.msg(data.msg,{time:2000});
-
-                        }
-                    }, 'json');
-
-            });
-        }
         //批量同步房屋 传out_community_id
         $('#upload_community').change(function () {
             $('.units_upload').remove();
@@ -1028,61 +1060,9 @@
             }
 
         });
-        //线下结算申请
-        function editLineBill(id,bill_status){
-            layer.confirm('确定线下已结算,并提交审核吗?', {
-                btn: ['确定', '取消'] //按钮
-            }, function () {
-                $.post("{{url('merchant/editlinebill')}}", {_token: "{{csrf_token()}}", id: id ,bill_status:bill_status},
-                    function (data) {
-                        if (data.success) {
-                            layer.msg(data.msg,{time:500});
-                            setTimeout(function(){window.location.reload()},500);
-                        } else {
-                            layer.msg(data.msg,{time:2000});
-
-                        }
-                    }, 'json');
-            }, function () {
-
-            });
-        }
-        //存疑账单处理
-        function questionBill(id){
-            $("#bill_id").val(id);
-        }
-        $("#question_bill_submit").click(function(){
-            var obj=$("#questionBill");
-            var  ck=true;
-            obj.find('.input').each(function () {
-                var val = $(this).val();
-                if (val == "") {
-                    $(this).focus().css({
-                        "border": "1px solid red"
-                    });
-                    $(this).next().show();
-                    ck= false;
-                }
-            });
-            if(ck) {
-                $.post("{{url('merchant/questionbillsubmit')}}", {
-                        _token: "{{csrf_token()}}",
-                      bill_id:$("#bill_id").val(),
-                      correct_bill_amount:$("#correct_bill_amount").val(),
-                     description:$("#description").val()
-                    },
-                    function (data) {
-                        if (data.success) {
-                            layer.msg(data.msg, {time: 500});
-                            setTimeout(function () {
-                                window.location.reload()
-                            }, 500);
-                        } else {
-                            layer.msg(data.msg, {time: 5000});
-                        }
-                    }, 'json');
-            }
-
+        //错误信息导出
+        $('#errorDown').click(function () {
+            $(this).prop('href',location.protocol+'//'+document.domain+'/merchant/billerror');
         });
         //弹出隐藏层
         function ShowDiv(show_div,bg_div){
@@ -1111,9 +1091,31 @@
             $('#template').hide()
 
         }
+        $("#data_5 .input-daterange").datepicker({
+            todayBtn:"linked",
+            keyboardNavigation:!1,
+            forceParse:1,
+            calendarWeeks:!0,
+            todayHighlight:!0,
+            minViewMode:1,
+            startView:0,
+            showMeridian:true,
+            autoclose:!0,
+            format:"yyyy-mm"
+        });
+        $("#data_3 .input-group.date").datepicker({
+            todayBtn:"linked",
+            keyboardNavigation:!1,
+            forceParse:1,
+            todayHighlight:!0,
+            autoclose:!0,
+            minView:0,
+            minViewMode:0,
+            startView:0
+        });
+        $("#data_3 .input-daterange").datepicker('setStartDate',new Date());
     </script>
     <script src="{{asset('/adminui/js/plugins/cropper/cropper.min.js')}}"></script>
-    <script src="{{asset('/adminui/js/demo/form-advanced-demo.min.js')}}"></script>
     <script src="{{asset("/adminui/js/plugins/switchery/switchery.js")}}"></script>
 @endsection
 

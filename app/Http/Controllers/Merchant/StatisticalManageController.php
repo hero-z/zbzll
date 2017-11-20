@@ -21,6 +21,17 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class StatisticalManageController  extends Controller
 {
+    protected $typeformat=['alipay'=>'物业官方支付宝','money'=>'现金'];
+    protected $costtypeformat=['property_fee'=>'物业费','public_property_fee'=>'物业费公摊','rubbish_fee'=>'垃圾费','elevator_fee'=>'电梯费'];
+    protected $billstatusformat=['ONLINE'=>'已同步',
+        'NONE'=>'未同步',
+        'UNDERREVIEW'=>'线下结算审核中',
+        'ONLINE_UNDERREVIEW'=>'线下结算审核中',
+        'TRADE_SUCCESS'=>'已结算'
+    ];
+    protected $head=['所属员工','所属小区','房间号','金额(元)','支付方式','费用类型'
+        ,'账单状态','所属账期','截止日期','备注','更新日期'];
+
     //统计管理
     public function billQuerry(Request $request)
     {
@@ -134,16 +145,10 @@ class StatisticalManageController  extends Controller
                 });
             if($export){
                 try{
-                    $typeformat=['alipay'=>'物业官方支付宝','money'=>'现金'];
-                    $costtypeformat=['property_fee'=>'物业费','public_property_fee'=>'物业费公摊'];
-                    $billstatusformat=['ONLINE'=>'已同步',
-                        'NONE'=>'未同步',
-                        'UNDERREVIEW'=>'线下结算审核中',
-                        'ONLINE_UNDERREVIEW'=>'线下结算审核中',
-                        'TRADE_SUCCESS'=>'已结算'
-                    ];
-                    $head=['所属员工','所属小区','房间号','金额(元)','支付方式','费用类型'
-                        ,'账单状态','所属账期','截止日期','备注','更新日期'];
+                    $typeformat=$this->typeformat;
+                    $costtypeformat=$this->costtypeformat;
+                    $billstatusformat=$this->billstatusformat;
+                    $head=$this->head;
                     $body=[$head];
                     $lists=$collcet->get();
                     if($lists){

@@ -172,7 +172,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="rom_name"    data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="rom_name"    data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="">请选择小区名称</option>
                                     @if($communityInfo)
                                         @foreach($communityInfo as $v)
@@ -191,7 +191,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" data-am-selected="{searchBox: 1}" id="room_building">
+                                <select class="select" data-am-selected="{searchBox: 1,maxHeight: 200}" id="room_building">
                                     <option value="" id="">请选择房屋所在楼栋</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在楼栋</span>
@@ -205,7 +205,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="room_unit"  data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="room_unit"  data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="" id="unit" >请选择房屋所在单元</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在单元</span>
@@ -292,7 +292,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="rooms_name"    data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="rooms_name"    data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="">请选择小区名称</option>
                                     @if($communityInfo)
                                         @foreach($communityInfo as $v)
@@ -311,7 +311,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" data-am-selected="{searchBox: 1}" id="rooms_building">
+                                <select class="select" data-am-selected="{searchBox: 1,maxHeight: 200}" id="rooms_building">
                                     <option value="" id="">请选择房屋所在楼栋</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在楼栋</span>
@@ -325,7 +325,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="rooms_unit"  data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="rooms_unit"  data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="" id="unit" >请选择房屋所在单元</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在单元</span>
@@ -394,7 +394,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="upload_community"    data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="upload_community"    data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="">请选择小区名称</option>
                                     @if($communityInfo)
                                         @foreach($communityInfo as $v)
@@ -413,7 +413,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" data-am-selected="{searchBox: 1}" id="upload_building">
+                                <select class="select" data-am-selected="{searchBox: 1,maxHeight: 200}" id="upload_building">
                                     <option value="" id="">请选择房屋所在楼栋</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在楼栋</span>
@@ -427,7 +427,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="upload_unit"  data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="upload_unit"  data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="" id="unit" >请选择房屋所在单元</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在单元</span>
@@ -463,7 +463,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="del_community"    data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="del_community"    data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="">请选择小区名称</option>
                                     @if($communityInfo)
                                         @foreach($communityInfo as $v)
@@ -482,7 +482,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" data-am-selected="{searchBox: 1}" id="del_building">
+                                <select class="select" data-am-selected="{searchBox: 1,maxHeight: 200}" id="del_building">
                                     <option value="" id="">请选择房屋所在楼栋</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在楼栋</span>
@@ -496,7 +496,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <select class="select" name="" id="del_unit"  data-am-selected="{searchBox: 1}" >
+                                <select class="select" name="" id="del_unit"  data-am-selected="{searchBox: 1,maxHeight: 200}" >
                                     <option value="" id="unit" >请选择房屋所在单元</option>
                                 </select>
                                 <span class="span" style="color:red;font-size: 12px;display: none">请选择房屋所在单元</span>

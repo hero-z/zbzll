@@ -10,19 +10,22 @@ class NotifyController extends BaseController{
         //支付异步通知
         try{
             $aop = $this->AopClientNotify();
-            $wzl = $aop->rsaCheckV2($request->all(), $aop->alipayrsaPublicKey,'RSA');
+            $wzl = $aop->rsaCheckV2($request->all(), $aop->alipayrsaPublicKey,'RSA2');
             if($wzl){
                 $data = $request->all();
-                $bill=Bill::where("bill_entry_id",$data['det_list'])->first();
-                if($data['trade_status']!=$bill['bill_status']){
-                    Bill::where('bill_entry_id', $data['det_list'])->update([
-                        'bill_status' => $data['trade_status'],
-                        'bill_entry_amount' => $data['receipt_amount'],
-                        "trade_no"=>$data['trade_no'],
-                        "buyer_user_id"=>$data['buyer_user_id']
-                    ]);
-                    //如果状态不相同修改数据库状态
+                $det_list=explode("|",$data['det_list']);
+                foreach ($det_list as $k=>$v){
+                    $bill=Bill::where("bill_entry_id",$v)->first();
+                    if($data['trade_status']!=$bill['bill_status']){
+                        Bill::where('bill_entry_id', $v)->update([
+                            'bill_status' => $data['trade_status'],
+                            "trade_no"=>$data['trade_no'],
+                            "buyer_user_id"=>$data['buyer_user_id'],
+                            "buyer_logon_id"=>$data['buyer_logon_id']
+                        ]);
+                        //如果状态不相同修改数据库状态
 
+                    }
                 }
             }
         }catch(\Exception $e){

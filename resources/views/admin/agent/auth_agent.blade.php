@@ -117,6 +117,23 @@
     <script>
         $(document).ready(function(){$(".fancybox").fancybox({openEffect:"none",closeEffect:"none"})});
     </script>
+    <script type="text/javascript">
+        //处理图片上传
+        $('#file').takungaeImgup({
+            formData:{
+                _token : "{{csrf_token()}}",
+                path:'agent/'
+            },
+            url:"{{url('admin/uploadimg')}}",
+            success:function(data){
+//                console.log(data);
+
+            },
+            error:function (err) {
+                console.log(err)
+            }
+        });
+    </script>
     <script>
         $(function () {
             var agentid="{{Auth::guard('admin')->user()->id}}";

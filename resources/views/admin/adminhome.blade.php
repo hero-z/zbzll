@@ -35,7 +35,7 @@
                         </ul>
                         <ul class="nav nav-second-level">
                             <li>
-                                <a class="J_menuItem" href="" data-index="0">账单统计</a>
+                                <a class="J_menuItem" href="{{url('admin/billquery')}}" data-index="0">账单统计</a>
                             </li>
 
                         </ul>

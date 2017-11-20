@@ -94,7 +94,7 @@
                                         @if($v->bill_status=="NONE")
                                             未同步
                                         @endif
-                                        @if($v->bill_status=="UNDERREVIEW")
+                                        @if($v->bill_status=="UNDERREVIEW"||$v->bill_status=="ONLINE_UNDERREVIEW")
                                             线下结算审核中
                                         @endif
                                     </td>

@@ -107,10 +107,11 @@
                             <th >支付方式</th>
                             <th>费用类型</th>
                             <th>账单状态</th>
-                            <th>所属账期</th>
-                            <th>截止日期</th>
+                            <th>出账日期</th>
+                            <th>账期起止日期</th>
+                            <th>缴费截止日期</th>
                             <th>备注</th>
-                            <th >更新日期</th>
+                            <th>更新时间</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -159,6 +160,7 @@
                                             </span>
                                         @endif
                                     </td>
+                                    <td>{{$v->release_day}}</td>
                                     <td>{{$v->acct_period}}</td>
                                     <td>{{$v->deadline}}</td>
                                     <td>{{$v->remark_str}}</td>

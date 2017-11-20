@@ -70,7 +70,9 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin','middleware'=>'auth.adm
     $router->any('companysinfo','CompanyManageController@companysInfo');
     $router->post('changestatus','CompanyManageController@changeStatus');
     $router->post('delcompany','CompanyManageController@delCompany');
-
+    //账单统计
+    $router->any("billquery","StatisticalManageController@billQuerry");
+    $router->post("agents","StatisticalManageController@agents");
 });
 //物业公司授权进件
 Route::group(['prefix' => 'admin','namespace' => 'Admin','middleware'=>'merchant.oauth:merchantoauth'],function ($router)
@@ -175,6 +177,8 @@ Route::group(['prefix' => 'merchant','namespace' => 'Merchant','middleware'=>'au
     $router->post("questionbillsubmit","BillController@questionBillSubmit");
     $router->post('checkbill',"BillController@CheckBill");
     $router->post('delcheckbill',"BillController@delCheckBill");
+    $router->get('billdescription',"BillController@billDescription");
+    $router->post('deletebill',"BillController@deleteBill");
     $router->get('ceshi',"CommunityController@ceshi");
     //统计管理
     $router->any("billquery","StatisticalManageController@billQuerry");
@@ -182,6 +186,9 @@ Route::group(['prefix' => 'merchant','namespace' => 'Merchant','middleware'=>'au
     $router->get('companylogo',"LogoController@companyLogo");
     $router->post('setcompanylogo',"LogoController@setCompanyLogo");
     $router->any('uploadlogo',"UploadController@uploadLogo")->name('uploadlogos');
+    //错误信息导出
+    $router->get('roomerror',"ExcelController@roomError");
+    $router->get('billerror',"ExcelController@billError");
 
 });
 //支付异步通知

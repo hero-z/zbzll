@@ -8,6 +8,7 @@ use App\Models\Residentinfo;
 use App\Models\RoomInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Packages\alipay\request\AlipayEcoCplifeBillBatchUploadRequest;
@@ -30,12 +31,12 @@ class BillController extends BaseController{
         if($room){
             $roomwhere[]=['room_infos.room','like','%'.$room."%"];
             $unitwhere[]=['units.unit_name','like','%'.$room."%"];
-            $residentwhere[]=['bills.remark_str','like','%'.$room."%"];
+            $residentwhere[]=['residentinfos.name','like','%'.$room."%"];
         }
         try{
             $merchant_id=CheckMerchantController::CheckMerchant(Auth::guard('merchant')->user()->id);
-            $billInfo=DB::table("bills")
-                ->join('room_infos',"bills.out_room_id","=","room_infos.out_room_id")
+            $billInfo=DB::table("room_infos")
+                ->join('residentinfos',"room_infos.out_room_id","residentinfos.out_room_id")
                 ->join("units","room_infos.unit_id","=","units.id")
                 ->join("buildings","units.building_id","=","buildings.id")
                 ->join("communities","buildings.out_community_id","=","communities.out_community_id")
@@ -44,12 +45,39 @@ class BillController extends BaseController{
                 ->where($roomwhere)
                 ->orwhere($unitwhere)
                 ->orwhere($residentwhere)
-                ->select("communities.community_name","communities.alipay_status","communities.basicservice_status","buildings.building_name","units.unit_name","room_infos.room","bills.*")
-                ->orderBy("room_infos.room")
+                ->select( "communities.community_name","communities.out_community_id","communities.alipay_status","communities.basicservice_status","buildings.building_name","units.unit_name","room_infos.room","room_infos.out_room_id","residentinfos.name")
+                ->orderBy("communities.out_community_id","buildings.building_name","units.unit_name","room_infos.room")
                 ->paginate(8);
+            foreach($billInfo as $k=>$v){
+                $total=Bill::where('out_room_id',$v->out_room_id)->select('bill_entry_amount')->sum('bill_entry_amount');
+                $success=Bill::where('out_room_id',$v->out_room_id)->where('bill_status',"TRADE_SUCCESS")->select('bill_entry_amount')->sum('bill_entry_amount');
+                $count=Bill::where('out_room_id',$v->out_room_id)->where('bill_status',"NONE")->count();
+                $billInfo[$k]->total=$total;
+                $billInfo[$k]->success=$success;
+                $billInfo[$k]->count=$count;
+
+            }
             //小区信息
             $communityInfo=Community::whereIn('merchant_id',$merchant_id)->select('community_name','out_community_id')->get();
             return view ('merchant.bill.billinfo',compact('billInfo','communityInfo','out_community_id','room'));
+        }catch(\Exception $e){
+            $error=$e->getMessage();
+            $line=$e->getLine();
+        }
+        return view('error',compact('line','error'));
+    }
+    //账单详情
+    public function billDescription(Request $request)
+    {
+        $out_room_id=$request->out_room_id;
+        try{
+            $billInfo=DB::table('bills')
+                    ->join('room_infos','bills.out_room_id',"=","room_infos.out_room_id")
+                    ->where('bills.out_room_id',$out_room_id)
+                    ->select('room_infos.status','bills.*')
+                    ->orderBy('bills.created_at',"bills.release_day")
+                    ->paginate(8);
+            return view('merchant.bill.billdescription',compact('billInfo','out_room_id'));
         }catch(\Exception $e){
             $error=$e->getMessage();
             $line=$e->getLine();
@@ -69,18 +97,23 @@ class BillController extends BaseController{
                 $data['admin_id']=Company_info::where('merchant_id',$merchant_id)->first()->admin_id;
                 $resident=Residentinfo::where('out_room_id',$request->out_room_id)->first();
                 $data['remark_str']=$resident->name;
-                $data['bill_entry_id']=date("YmdHis").rand(10000,99999).time();
-                if(Bill::create($data)){
-                    return json_encode([
-                        "success"=>1,
-                        "msg"=>'添加账单成功!'
-                    ]);
-                }else{
-                    return json_encode([
-                        "success"=>0,
-                        "msg"=>'添加账单失败!'
-                    ]);
+                $time1 = strtotime($data['time_start']); // 自动为00:00:00 时分秒
+                $time2 = strtotime($data['time_end']);
+
+                $monarr = array();
+                $monarr[] = $data['time_start']; // 当前月;
+                while( ($time1 = strtotime('+1 month', $time1)) <= $time2){
+                    $monarr[] = date('Y-m',$time1); // 取得递增月;
                 }
+                foreach ($monarr as $k=>$v){
+                    $data['bill_entry_id']=date("YmdHis").rand(10000,99999).time();
+                    $data['acct_period']=$v;
+                    Bill::create($data);
+                }
+                return json_encode([
+                    "success"=>1,
+                    "msg"=>'添加账单成功!'
+                ]);
 
             }else{
                 $error='亲,你还没有该操作权限!';
@@ -110,12 +143,21 @@ class BillController extends BaseController{
                     $reader->noHeading();
                     $excel = $reader->all();
                 })->toArray();
+                $errorCheck=[];
                 foreach ($excel as $k=>$v){
-                    if($k==0||$v==""){
+                    if($k==0||$v==""||is_null($v[0])){
                         continue;
                     }
                     $data['out_room_id']=$v[1];
-                    $data['out_community_id']=RoomInfo::where('out_room_id',$v[1])->first()->out_community_id;
+                    $roomsss=RoomInfo::where('out_room_id',$v[1])->first();
+                    if($roomsss){
+                        $data['out_community_id']=$roomsss->out_community_id;
+                    }else{
+                        array_push($v,'该房屋编号在数据库中不存在,请仔细核查');
+                        array_push($v,date("Y-m-d H:i:s"));
+                        $errorCheck[]=$v;
+                        continue;
+                    }
                     $community=Community::where("out_community_id", $data['out_community_id'])->first();
                     $data['community_id']=$community->community_id;
                     $resident=Residentinfo::where('out_room_id',$v[1])->first();
@@ -126,18 +168,30 @@ class BillController extends BaseController{
                     $data['bill_entry_amount']=$v[5];
                     $data['deadline']=$v[6];
                     if( Bill::create($data)){
-
+                        array_push($v,'数据异常,无法导入,请仔细检查');
+                        array_push($v,date("Y-m-d H:i:s"));
+                        $errorCheck[]=$v;
+                        continue;
                     }else{
-                        return json_encode([
-                            'success'=>0,
-                            'msg'=>"第".($k+1)."条信息出现异常,请检查是否输入有误!"
-                        ]);
+                        array_push($v,'数据异常,无法导入,请仔细检查');
+                        array_push($v,date("Y-m-d H:i:s"));
+                        $errorCheck[]=$v;
+                        continue;
                     }
                 }
-                return json_encode([
-                    "success"=>1,
-                    "msg"=>"批量导入成功"
-                ]);
+                Cache::store('file')->put("billError",$errorCheck,20);
+                if(empty($errorCheck)){
+                    return json_encode([
+                        "success"=>1,
+                        "msg"=>"批量导入成功"
+                    ]);
+                }else{
+                    return json_encode([
+                        "success"=>0,
+                        "msg"=>"账单导入有误,请下载错误模板检查!"
+                    ]);
+                }
+
 
             }else{
                 $error='亲,你还没有该操作权限!';
@@ -171,7 +225,7 @@ class BillController extends BaseController{
                     ->get();
                 //遍历时间格式转为字符串格式
                 foreach($bill_set as $k=>$v){
-                    $bill_set[$k]->acct_period=str_replace('-','',$bill_set[$k]->acct_period);
+                    $bill_set[$k]->acct_period='归属账期'.str_replace('-','',$bill_set[$k]->acct_period);
                     $bill_set[$k]->release_day=str_replace('-','',$bill_set[$k]->release_day);
                     $bill_set[$k]->deadline=str_replace('-','',$bill_set[$k]->deadline);
                     if($bill_set[$k]->cost_type=="property_fee"){
@@ -260,7 +314,7 @@ class BillController extends BaseController{
                 }
                 //遍历时间格式转为字符串格式
                 foreach($bill_set as $k=>$v){
-                    $bill_set[$k]->acct_period=str_replace('-','',$bill_set[$k]->acct_period);
+                    $bill_set[$k]->acct_period="归属账期".str_replace('-','',$bill_set[$k]->acct_period);
                     $bill_set[$k]->release_day=str_replace('-','',$bill_set[$k]->release_day);
                     $bill_set[$k]->deadline=str_replace('-','',$bill_set[$k]->deadline);
                     if($bill_set[$k]->cost_type=="property_fee"){
@@ -571,7 +625,38 @@ class BillController extends BaseController{
         }
         return json_encode([
             "success"=>0,
-            "msg"=>"同步失败".$error.$line
+            "msg"=>"请求失败".$error.$line
+        ]);
+    }
+    //删除账单
+    public function deleteBill(Request $request)
+    {
+        $line=0;
+        $error="未知错误";
+        try{
+            if(CheckRolePermissionController::CheckRoleRoot()||CheckRolePermissionController::CheckPremission('deleteBill')){
+                $id=$request->id;
+                if(Bill::where('id',$id)->delete()){
+                    return json_encode([
+                        "success"=>1,
+                        "msg"=>"删除成功!"
+                    ]);
+                }else{
+                    return json_encode([
+                        "success"=>0,
+                        "msg"=>"删除失败!"
+                    ]);
+                }
+            }else{
+                $error='亲,你还没有该操作权限!';
+            }
+        }catch (\Exception $e){
+            $error=$e->getMessage();
+            $line=$e->getLine();
+        }
+        return json_encode([
+            "success"=>0,
+            "msg"=>"删除失败".$error.$line
         ]);
     }
 }

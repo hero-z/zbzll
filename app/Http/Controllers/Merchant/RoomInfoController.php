@@ -208,10 +208,17 @@ class RoomInfoController extends BaseController{
                         }
                 }
                Cache::store('file')->put("errorCheck",$errorCheck,20);
-                return json_encode([
-                    "success"=>1,
-                    "msg"=>"批量导入成功"
-                ]);
+                if(empty($errorCheck)){
+                    return json_encode([
+                        "success"=>1,
+                        "msg"=>"批量导入成功"
+                    ]);
+                }else{
+                    return json_encode([
+                        "success"=>0,
+                        "msg"=>"房屋导入有误,请下载错误模板检查!"
+                    ]);
+                }
 
             }else{
                 $error='亲,你还没有该操作权限!';
