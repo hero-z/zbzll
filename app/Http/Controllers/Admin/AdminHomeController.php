@@ -110,7 +110,7 @@ class AdminHomeController extends Controller
                     ->pluck('total', 'company_id')->toArray();
                 if ($company_id) {
                     foreach ($company_id as $k => $v) {
-                        if (!array_key_exists($v, $bill)) {
+                        if (!array_key_exists($v, $bill)||!$bill) {
                             $bill[$v] = 0;
                         }
                     }
@@ -125,7 +125,7 @@ class AdminHomeController extends Controller
                     ->pluck('total', 'company_id')->toArray();
                 if ($company_id) {
                     foreach ($company_id as $k => $v) {
-                        if (!array_key_exists($v, $billInfo)) {
+                        if (!array_key_exists($v, $billInfo)||!$billInfo) {
                             $billInfo[$v] = 0;
                         }
                     }
@@ -143,6 +143,7 @@ class AdminHomeController extends Controller
                 }
 
             }
+            $age=[];
             foreach ($company_amount as $key => $value) {
                 $age[$key] = $value['rate'];
             }

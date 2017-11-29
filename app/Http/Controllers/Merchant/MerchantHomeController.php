@@ -160,7 +160,7 @@ class MerchantHomeController extends Controller
                 ->pluck('total','out_community_id')->toArray();
             if($out_community_id){
                 foreach ($out_community_id as $k=>$v){
-                    if(!array_key_exists($v,$bill)){
+                    if(!array_key_exists($v,$bill)||!$bill){
                         $bill[$v]=0;
                     }
                 }
@@ -175,7 +175,7 @@ class MerchantHomeController extends Controller
                 ->pluck('total','out_community_id')->toArray();
             if($out_community_id){
                 foreach ($out_community_id as $k=>$v){
-                    if(!array_key_exists($v,$billInfo)){
+                    if(!array_key_exists($v,$billInfo)||!$billInfo){
                         $billInfo[$v]=0;
                     }
                 }
