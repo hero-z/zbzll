@@ -242,7 +242,7 @@
                         var rolepermission=data.rolepermission;
                         //权限分层
                         $.each(permissions,function(i,v){
-                            console.log(v);
+//                            console.log(v);
                             if(v.pid == 0){
                                 oneArr.push(v);
                             }else{
@@ -253,9 +253,9 @@
                         for(var i =0;i < rolepermission.length;i++){
                             permission_idArr.push(rolepermission[i].permission_id)
                         }
-                        console.log(permission_idArr);
-                        console.log(oneArr);
-                        console.log(twoArr);
+//                        console.log(permission_idArr);
+//                        console.log(oneArr);
+//                        console.log(twoArr);
                         //获得数据后开始渲染视图
                         $.each(oneArr, function(i,v) {
                             var htmlStr = $(".box:first").clone();

@@ -1,16 +1,47 @@
 @extends("layouts.admincontentpublic")
-@section("title","代理商管理")
+@section("title","物业公司管理")
 @section('css')
-    <link href="{{asset('/adminui/js/plugins/fancybox/jquery.fancybox.css')}}" rel="stylesheet">
-    <link href="{{asset('upload_imgs/css/index.css')}}" type="text/css" rel="stylesheet"/>
-    <style>
-        /*.ant-form-item-control{*/
-        /*line-height: normal;*/
-        /*}*/
-        .fl{
-            float: left;
-        }
-    </style>
+{{--    <link href="{{asset('/adminui/js/plugins/fancybox/jquery.fancybox.css')}}" rel="stylesheet">--}}
+    {{--<link href="{{asset('upload_imgs/css/index.css')}}" type="text/css" rel="stylesheet"/>--}}
+    <link href="{{asset('/adminui/css/amazeui.chosen.css')}}" rel="stylesheet">
+<style>
+
+
+    .ant-modal-close-x{
+        background-color: #fff !important;
+    }
+    .ant-modal-close-x:hover{
+        background-color: #fff !important;
+    }
+    th{
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .am-selected-status{
+        font-size: 12px !important;
+        color: #9e9e9e;
+    }
+    [class*=am-icon-]:before {
+        color: #999;
+        font-size: 11px;
+
+    }
+    .am-selected-btn.am-btn-default {
+        border-radius: 5px;
+        height: 32px;
+    }
+    .am-selected {
+        width: 80%;
+    }
+    .am-selected-list .am-selected-text{
+        color: #999;
+        font-size: 11px;
+    }
+    [v-cloak]{
+        display: none;
+    }
+
+</style>
 @endsection
 @section("content")
 
@@ -21,7 +52,6 @@
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
                     <div style="display: block;float: left;">
-                        {{--物业公司管理--}}
                     </div>
                     <div class="ibox-tools">
                         <a class="collapse-link">
@@ -116,6 +146,11 @@
                                                         class="btn jurisdiction btn-outline btn-primary">开启服务
                                                 </button>
                                             @endif
+                                                @role('root')
+                                                <button  id="add-factor" type="button" onclick="ShowDiv('changeOwner_box','mask');setdetail({{$v->id.',"'.$v->admin_name.'"'}});getagents({{$v->admin_id}})"
+                                                         class="btn btn-outline btn-success">变更授权人
+                                                </button>
+                                                @endrole
                                         </td>
                                     </tr>
                                 @endforeach
@@ -213,16 +248,69 @@
             </div>
         </div>
     </div>
+    <div id="changeOwner_box" class="ant-modal" style="width: 520px; transform-origin: 1054px 10px 0px;display: none">
+        <div class="ant-modal-content">
+            <button  class="ant-modal-close"  onclick="CloseDiv('changeOwner_box','mask')">
+                <span class="ant-modal-close-x"></span>
+            </button>
+            <div class="ant-modal-header">
+                <div class="ant-modal-title" >变更授权人</div>
+            </div>
+            <div class="ant-modal-body">
+                <form class="ant-form ant-form-horizontal">
+                    <input type="hidden" id="company_id">
+                    <div class="ant-row ant-form-item">
+                        <div id="ibox-content"  class="" style="padding-left: 30px;">
+                            <label class="col-sm-3 control-label">当前授权人:</label>
+                            <div class="col-sm-6" style="text-align: center">
+                                <label id="targetagent" class="col-sm-12 control-label">无</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item">
+                        <div id="ibox-content"  class="" style="padding-left: 30px;">
+                            <label class="col-sm-3 control-label">输入登录密码:</label>
+                            <input type="text" style="display: none;">
+                            <input type="password" style="display: none;">
+                            <div class="col-sm-6 ant-form-item-control ">
+                                <input type="password" autocomplete="off" class="input ant-input ant-input-lg" id="password" name="password" placeholder="请输入登录密码确保是本人操作">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item">
+                        <div id="ibox-content"  class="" style="padding-left: 30px;">
+                            <label class="col-sm-3 control-label">转移到</label>
+                            <div class="col-sm-8">
+                                    <select class="select" name="selectagent" id="selectagent"  {{--style="width:250px;height:200px;" --}}  data-am-selected="{searchBox: 1,maxHeight:200}" >
 
+                                    </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item modal-btn form-button" style="margin-top: 24px; text-align: center;">
+                        <div class="ant-col-22 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <button type="button" class="ant-btn ant-btn-primary ant-btn-lg" onclick="changeowner()"><span>确定</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 @section('js')
-    <script src="{{asset('/adminui/js/plugins/peity/jquery.peity.min.js')}}"></script>
-    <script src="{{asset('/adminui/js/plugins/fancybox/jquery.fancybox.js')}}"></script>
-    <script src="{{asset('/adminui/js/content.min.js?v=1.0.0')}}"></script>
+    {{--<script src="{{asset('/adminui/js/chosen.jquery.js')}}"></script>--}}
+    <script src="{{asset('/adminui/js/amazeui.chosen.js')}}"></script>
     <script>
-        $(document).ready(function(){$(".fancybox").fancybox({openEffect:"none",closeEffect:"none"})});
-    </script>
-    <script>
+        $(document).ready(function () {
+            render();
+            function render() {
+                $('body').css('overflow-y','scroll');
+                $('#selectagent').chosen();
+            }
+
+        });
         //修改状态
         function changestatus(companyid,status) {
             $.post("{{url('admin/changestatus')}}", {_token: "{{csrf_token()}}",
@@ -258,6 +346,41 @@
 
             });
         }
+        function setdetail(id,name) {
+            $('#company_id').val(id);
+            $('#targetagent').text(name);
+        }
+        //获取代理商列表
+        function getagents(tig) {
+            $.post("{{url('admin/getallagents')}}", {_token: "{{csrf_token()}}" },
+                function (data) {
+                    if (data.success) {
+                        var admins=data.data;
+                        for(admin in admins){
+                            var display_name=' <option class=""'+(admin==tig?"disabled":'')+'  value='+ admin + '>'+admins[admin]+'</option>';
+                            $(' #selectagent').append(display_name);
+//                            $(' #changeOwner_box').find('select').append(display_name);
+                        }
+                    } else {
+                        layer.msg(data.msg,{time:2000});
+                    }
+                }, 'json');
+        }
+        function changeowner() {
+            $.post("{{url('admin/changeowner')}}", {_token: "{{csrf_token()}}" ,
+                    company_id:  $('#company_id').val(),
+                    password:  $('#password').val(),
+                    targetagent:  $('#selectagent').val()
+                },
+                function (data) {
+                    if (data.success) {
+                        layer.msg(data.msg,{time:500});
+                        setTimeout(function(){window.location.reload()},500);
+                    } else {
+                        layer.msg(data.msg,{time:2000});
+                    }
+                }, 'json');
+        }
         //弹出隐藏层
         function ShowDiv(show_div,bg_div){
             document.getElementById(show_div).style.display='block';
@@ -271,16 +394,8 @@
         function CloseDiv(show_div,bg_div){
             document.getElementById(show_div).style.display='none';
             document.getElementById(bg_div).style.display='none';
-            $('.input').css({'border':'1px solid #d9d9d9'});
-            $('.select').css({'border':'1px solid #d9d9d9'});
-            $('.input').next().hide();
-            $('#agentFile_box').find('img').attr('src','');
-            $('#agentFile_box').find('input').val('');
-            $('#agentUpdateFile_box').find('input').val('');
-            $('.up-section').hide();
-            $('.select').next().hide();
-            $('.role_id').remove();
-            $("#agentFile_box").find('input').val('');
+            $('#selectagent >option').remove();
+            $("#password").val('');
         }
         function CloseAll(show_div,bg_div){
             document.getElementById(show_div).style.display='none';

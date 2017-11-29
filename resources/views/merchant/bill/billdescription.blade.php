@@ -116,12 +116,22 @@
                                     <td>{{$v->buyer_logon_id}}</td>
                                     <td>{{$v->created_at}}</td>
                                     <td class="center">
-                                        @if($v->bill_status=="NONE"&&$v->status!="NONE")
-                                            @mpermission('uploadBill')
-                                            <button type="button" onclick='uploadBill("{{$v->id}}","{{$v->out_community_id}}")'
-                                                    class="btn jurisdiction btn-outline btn-success">同步至支付宝
-                                            </button>
-                                            @endpermission
+                                        @mpermission('uploadBill')
+                                        @if($v->bill_status!="NONE"&&$roomInfo[$v->out_room_id]!="NONE")
+                                        @if(array_key_exists($v->id,$expired_bill))
+                                                <button type="button" onclick='uploadBill("{{$v->id}}","{{$v->out_community_id}}")'
+                                                        class="btn jurisdiction btn-outline btn-warning">逾期处理
+                                                </button>
+                                        @endif
+                                        @endif
+                                        @if(!array_key_exists($v->id,$expired_bill)&&$v->bill_status=="NONE")
+                                                <button type="button" onclick='uploadBill("{{$v->id}}","{{$v->out_community_id}}")'
+                                                        class="btn jurisdiction btn-outline btn-success">同步至支付宝
+                                                </button>
+                                        @endif
+                                        @endpermission
+
+                                        @if($v->bill_status=="NONE")
                                             @mpermission('deleteBill')
                                             <button type="button" onclick="deleteBill('{{$v->id}}')"
                                                     class="btn btn-outline btn-danger">删除
@@ -159,7 +169,7 @@
             <div class="dataTables_paginate paging_simple_numbers"
                  id="DataTables_Table_0_paginate">
                 @if(isset($billInfo)&&!$billInfo->isEmpty())
-                    {{$billInfo->appends(compact('out_room_id'))->render()}}
+                    {{$billInfo->appends(compact('out_room_id',"roomInfo"))->render()}}
                 @endif
             </div>
         </div>

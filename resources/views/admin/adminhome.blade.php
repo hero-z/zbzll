@@ -14,9 +14,20 @@
                             <span><img alt="image" style="width: 100px;height: 100px;" class="img-circle" src="{{url($adminlogo->logo4)}}" /></span>
                             <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                                 <span class="clear">
-                               <span class="block m-t-xs"><strong class="font-bold" style="color:rosybrown">{{Auth::guard('admin')->user()->name}}</strong></span>
+                               <span class="block m-t-xs"><strong class="font-bold" style="color:rosybrown">{{Auth::guard('admin')->user()->name}}</strong><b class="caret"></b></span>
                                 </span>
                             </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                                <li><a class="J_menuItem" href="{{url('admin/ressetpsw')}}">修改密码</a>
+                                </li>
+                                <li><a class="J_menuItem" title="待开发" href="{{--{{url('admin/me')}}--}}">其他选项</a>
+                                </li>
+                               {{-- <li><a class="J_menuItem" href="contacts.html">联系我们</a>
+                                </li>--}}
+                                <li class="divider"></li>
+                                <li><a href="{{url("admin/logout")}}">安全退出</a>
+                                </li>
+                            </ul>
                         </div>
                         <div class="logo-element">H+
                         </div>
@@ -113,6 +124,13 @@
                         <ul class="nav nav-second-level">
                             <li>
                                 <a class="J_menuItem" href="{{url('admin/logoindex')}}" data-index="0">logo设置</a>
+                            </li>
+                        </ul>
+                        @endrole
+                        @role('root')
+                        <ul class="nav nav-second-level">
+                            <li>
+                                <a class="J_menuItem" href="{{url('admin/setsms')}}" data-index="0">短信设置</a>
                             </li>
                         </ul>
                         @endrole

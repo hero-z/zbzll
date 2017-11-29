@@ -15,6 +15,7 @@ use App\Models\Company_info;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class CompanyManageController extends Controller
 {
@@ -214,6 +215,87 @@ class CompanyManageController extends Controller
         return json_encode([
             "success"=>0,
             "msg"=>"更新失败!".$error.$line
+        ]);
+    }
+
+    /**root获取所有代理商
+     * @param Request $request
+     */
+    public function getAllAgents(Request $request)
+    {
+        $line='';
+        $error='';
+        try{
+            $root=CheckRolePermissionController::CheckRoleRoot();
+            if($request->isMethod('POST')){
+                if($root){
+                    $agents=Admin::where('status',1)->pluck('name','id');
+                    return json_encode([
+                        "success"=>1,
+                        "data"=>$agents
+                    ]);
+                }else{
+                    $error='没有权限调用!';
+                }
+            }else{
+                $error='方法调用错误!';
+            }
+        }catch (\Exception $e){
+            $error=$e->getMessage();
+            $line=$e->getLine();
+        }
+        return json_encode([
+            "success"=>0,
+            "msg"=>"获取信息失败!".$error.$line
+        ]);
+    }
+
+    /**修改归属
+     * @param Request $request
+     * @return string
+     */
+    public function changeOwner(Request $request)
+    {
+        $line='';
+        $error='';
+        try{
+            $root=CheckRolePermissionController::CheckRoleRoot();
+            if($request->isMethod('POST')){
+                if($root){
+                    $password=trim($request->password);
+                    $company_id=$request->company_id;
+                    $targetagent=$request->targetagent;
+                    if(Hash::check($password,Auth::guard('admin')->user()->password)){
+                        $company=Company_info::find($company_id);
+                        if($company){
+                            $re=$company->update(['admin_id'=>$targetagent]);
+                            if($re){
+                                return json_encode([
+                                    "success"=>1,
+                                    "msg"=>"操作成功!"
+                                ]);
+                            }else{
+                                $error='修改失败!';
+                            }
+                        }else{
+                            $error='查询异常!';
+                        }
+                    }else{
+                        $error='密码错误!';
+                    }
+                }else{
+                    $error='没有权限调用!';
+                }
+            }else{
+                $error='方法调用错误!';
+            }
+        }catch (\Exception $e){
+            $error=$e->getMessage();
+            $line=$e->getLine();
+        }
+        return json_encode([
+            "success"=>0,
+            "msg"=>"操作失败!".$error.$line
         ]);
     }
 }

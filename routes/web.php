@@ -29,6 +29,9 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin'],function ($router)
     $router->get('login', 'LoginController@showLoginForm');
     $router->post('login', 'LoginController@login')->name('admin.login');
     $router->get('logout', 'LoginController@logout');
+    $router->get('forget', 'ForgotPasswordController@forget');
+    $router->post('getcode', 'ForgotPasswordController@getCode');
+    $router->post('selfresetpsw', 'ForgotPasswordController@selfResetPsw');
 });
 //服务商端需要登录
 Route::group(['prefix' => 'admin','namespace' => 'Admin','middleware'=>'auth.admin:admin'],function ($router)
@@ -61,8 +64,10 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin','middleware'=>'auth.adm
     $router->post('editagentinfo','AgentMangeController@editAgentInfo');
     $router->post('checkagent','AgentMangeController@checkAgent');
     $router->post('setagentrole','AgentMangeController@setAgentRole');
-
+    $router->post('setagentfile','AgentMangeController@setAgentFile');
+    $router->any('ressetpsw','AgentMangeController@resSetPsw');
     $router->any('me','AgentMangeController@getMe');
+    
     $router->any('test','AgentMangeController@test');
     //上传图片
     $router->any('uploadimg','UploadFileController@uploadImg');
@@ -70,9 +75,14 @@ Route::group(['prefix' => 'admin','namespace' => 'Admin','middleware'=>'auth.adm
     $router->any('companysinfo','CompanyManageController@companysInfo');
     $router->post('changestatus','CompanyManageController@changeStatus');
     $router->post('delcompany','CompanyManageController@delCompany');
+    $router->post('getallagents','CompanyManageController@getAllAgents');
+    $router->post('changeowner','CompanyManageController@changeOwner');
     //账单统计
     $router->any("billquery","StatisticalManageController@billQuerry");
     $router->post("agents","StatisticalManageController@agents");
+    $router->post('bill_month','AdminHomeController@bill_month');
+    //短信配置
+    $router->any("setsms","SetSmsController@setSms");
 });
 //物业公司授权进件
 Route::group(['prefix' => 'admin','namespace' => 'Admin','middleware'=>'merchant.oauth:merchantoauth'],function ($router)
@@ -180,6 +190,7 @@ Route::group(['prefix' => 'merchant','namespace' => 'Merchant','middleware'=>'au
     $router->get('billdescription',"BillController@billDescription");
     $router->post('deletebill',"BillController@deleteBill");
     $router->get('ceshi',"CommunityController@ceshi");
+    $router->post('bill_month','MerchantHomeController@bill_month');
     //统计管理
     $router->any("billquery","StatisticalManageController@billQuerry");
     //系统设置

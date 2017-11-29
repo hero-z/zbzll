@@ -57,8 +57,8 @@ class StatisticalManageController extends Controller
             }else{
                 $users=[$user->id=>$user->name];
                 $bill_status=4;
-                $agents=$this->getAgents($admin_id?$admin_id:$user->id);
             }
+            $agents=$this->getAgents($admin_id?$admin_id:$user->id);
             if($time){
                 $where[]=['bills.release_day',$time];
             }
@@ -67,22 +67,6 @@ class StatisticalManageController extends Controller
             }
             if($time_end){
                 $where[]=['bills.updated_at','<',date('Y-m-d' . ' ' . ' 23:59:59',strtotime($time_end))];
-            }
-            if($bill_status){
-                switch ($bill_status){
-                    case 1:
-                        $wherestatus=['ONLINE'];
-                        break;
-                    case 2:
-                        $wherestatus=['NONE'];
-                        break;
-                    case 3:
-                        $wherestatus=['UNDERREVIEW','ONLINE_UNDERREVIEW'];
-                        break;
-                    case 4:
-                        $wherestatus=['TRADE_SUCCESS'];
-                        break;
-                }
             }
             if($bill_cost_type){
                 switch ($bill_cost_type){
@@ -107,6 +91,22 @@ class StatisticalManageController extends Controller
                         break;
                     case 2:
                         $where[]=['bills.type','money'];
+                        break;
+                }
+            }
+            if($bill_status){
+                switch ($bill_status){
+                    case 1:
+                        $wherestatus=['ONLINE'];
+                        break;
+                    case 2:
+                        $wherestatus=['NONE'];
+                        break;
+                    case 3:
+                        $wherestatus=['UNDERREVIEW','ONLINE_UNDERREVIEW'];
+                        break;
+                    case 4:
+                        $wherestatus=['TRADE_SUCCESS'];
                         break;
                 }
             }
@@ -159,7 +159,7 @@ class StatisticalManageController extends Controller
                     $billstatusformat=$this->billstatusformat;
                     $head=$this->head;
                     $body=[$head];
-                    $lists=$collcet->get();
+                    $lists=$collcet->limit(10000)->get();
                     if($lists){
                         foreach($lists as $k=>$v){
                             $typestr=$cost_typestr=$bill_statusstr='';
@@ -199,15 +199,15 @@ class StatisticalManageController extends Controller
             }
             if($total_amount==1){
                 //统计金额
-                $totalje=$collcet->sum('bill_entry_amount');
+                $totalje=round($collcet->sum('bill_entry_amount'),2);
                 return json_encode([
                     'success'=>1,
                     'totalje'=>$totalje,
                 ]);
             }
-            $count=$collcet->count();
+            $count=$collcet->count('bills.id');
             $lists=$collcet
-                ->orderBy('bills.updated_at','DESC')
+                /*->orderBy('bills.updated_at','DESC')*/
                 ->paginate(8);
             return view('admin.bill.query',compact('lists','users','agents','admin_id','agent_id','company_id','bill_cost_type','bill_status','bill_type','count','time','time_start','time_end'));
         }catch (\Exception $e){

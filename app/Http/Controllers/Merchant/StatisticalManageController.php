@@ -29,7 +29,7 @@ class StatisticalManageController  extends Controller
         'ONLINE_UNDERREVIEW'=>'线下结算审核中',
         'TRADE_SUCCESS'=>'已结算'
     ];
-    protected $head=['所属员工','所属小区','房间号','金额(元)','支付方式','费用类型'
+    protected $head=['所属员工','所属房间','金额(元)','支付方式','费用类型'
         ,'账单状态','所属账期','截止日期','备注','更新日期'];
 
     //统计管理
@@ -64,7 +64,7 @@ class StatisticalManageController  extends Controller
                 $where[]=['room_infos.room','like','%'.$room.'%'];
             }
             if($time){
-                $where[]=['bills.release_day',$time];
+                $where[]=['bills.acct_period',$time];
             }
             if($time_start){
                 $where[]=['bills.updated_at','>',date('Y-m-d' . ' ' . ' 00:00:00',strtotime($time_start))];
@@ -98,38 +98,34 @@ class StatisticalManageController  extends Controller
                         break;
                 }
             }
-            if($total_amount){
-                if($bill_status&&$bill_status!=4){
-                    return json_encode([
-                        'success'=>1,
-                        'totalje'=>0,
-                    ]);
-                }
-                $wherestatus=['TRADE_SUCCESS'];
-            }else{
-                if($bill_status){
-                    switch ($bill_status){
-                        case 1:
-                            $wherestatus=['ONLINE'];
-                            break;
-                        case 2:
-                            $wherestatus=['NONE'];
-                            break;
-                        case 3:
-                            $wherestatus=['UNDERREVIEW','ONLINE_UNDERREVIEW'];
-                            break;
-                        case 4:
-                            $wherestatus=['TRADE_SUCCESS'];
-                            break;
-                    }
+            if($bill_status){
+                switch ($bill_status){
+                    case 1:
+                        $wherestatus=['ONLINE'];
+                        break;
+                    case 2:
+                        $wherestatus=['NONE'];
+                        break;
+                    case 3:
+                        $wherestatus=['UNDERREVIEW','ONLINE_UNDERREVIEW'];
+                        break;
+                    case 4:
+                        $wherestatus=['TRADE_SUCCESS'];
+                        break;
                 }
             }
             $merchants=Merchant::whereIn('id',$this->getMids(Auth::guard('merchant')->user()->id))->select('name','id')->get();
-            $collcet=DB::table('bills')
-                ->join('communities','bills.out_community_id','communities.out_community_id')
-                ->join('room_infos','bills.out_room_id','room_infos.out_room_id')
+            $address=DB::table('room_infos')
                 ->join('buildings','room_infos.building_id','buildings.id')
                 ->join('units','room_infos.unit_id','units.id')
+                ->select('buildings.building_name','units.unit_name','room_infos.room','room_infos.out_room_id')
+                ->get();
+            $roominfos=[];
+            foreach ($address as $v){
+                $roominfos[$v->out_room_id]=$v->building_name.$v->unit_name.$v->room;
+            }
+            $collcet=DB::table('bills')
+                ->join('communities','bills.out_community_id','communities.out_community_id')
                 ->join('merchants','merchants.id','communities.merchant_id')
                 ->when(!empty($wherestatus),function($q)use($wherestatus){
                     return $q->whereIn('bills.bill_status',$wherestatus);
@@ -141,7 +137,21 @@ class StatisticalManageController  extends Controller
                     return $q->select('bills.bill_entry_amount');
                 })
                 ->when(!$total_amount,function($q){
-                    return $q->select('bills.*','buildings.building_name','units.unit_name','merchants.name as merchant_name','communities.community_name','room_infos.room');
+                    return $q->select(
+                        'bills.*',
+                       /* 'bills.bill_entry_amount',
+                        'bills.type',
+                        'bills.cost_type',
+                        'bills.bill_status',
+                        'bills.out_room_id',
+                        'bills.acct_period',
+                        'bills.deadline',
+                        'bills.release_day',
+                        'bills.remark_str',
+                        'bills.updated_at',*/
+                        'merchants.name as merchant_name',
+                        'communities.community_name'
+                    );
                 });
             if($export){
                 try{
@@ -150,10 +160,10 @@ class StatisticalManageController  extends Controller
                     $billstatusformat=$this->billstatusformat;
                     $head=$this->head;
                     $body=[$head];
-                    $lists=$collcet->get();
+                    $lists=$collcet->limit(10000)->get();
                     if($lists){
                         foreach($lists as $k=>$v){
-                            $typestr=$cost_typestr=$bill_statusstr='';
+                            $typestr=$cost_typestr=$bill_statusstr=$addressstr='';
                             if(array_key_exists($v->type,$typeformat)){
                                 $typestr=$typeformat[$v->type];
                             }
@@ -163,10 +173,12 @@ class StatisticalManageController  extends Controller
                             if(array_key_exists($v->bill_status,$billstatusformat)){
                                 $bill_statusstr=$billstatusformat[$v->bill_status];
                             }
+                            if(array_key_exists($v->out_room_id,$roominfos)){
+                                $addressstr=$roominfos[$v->out_room_id];
+                            }
                             $body[]=[
                                 $v->merchant_name,
-                                $v->community_name,
-                                $v->room,
+                                $v->community_name.$addressstr,
                                 $v->bill_entry_amount,
                                 $typestr,
                                 $cost_typestr,
@@ -188,19 +200,20 @@ class StatisticalManageController  extends Controller
                     die('导出数据失败');
                 }
             }
-            if($total_amount==1){
+            if($total_amount){
                 //统计金额
-                $totalje=$collcet->sum('bill_entry_amount');
+                $totalje=round($collcet->sum('bill_entry_amount'),2);
                 return json_encode([
                     'success'=>1,
                     'totalje'=>$totalje,
                 ]);
             }
-            $count=$collcet->count();
+            $count=$collcet->count('bills.id');
             $lists=$collcet
-                ->orderBy('room_infos.room')
+                ->orderBy('communities.out_community_id')
+                ->orderBy('bills.out_room_id')
                 ->paginate(8);
-            return view('merchant.bill.billquery',compact('lists','communityInfo','out_community_id','merchants','room','merchant_id','bill_cost_type','bill_status','bill_type','count','time','time_start','time_end'));
+            return view('merchant.bill.billquery',compact('lists','communityInfo','roominfos','out_community_id','merchants','room','merchant_id','bill_cost_type','bill_status','bill_type','count','time','time_start','time_end'));
         }catch (\Exception $e){
             $error=$e->getMessage();
             $line=$e->getLine();

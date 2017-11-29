@@ -99,6 +99,7 @@
                             <th>已缴金额</th>
                             <th >房主</th>
                             <th>未同步账单条数</th>
+                            <th>逾期未缴条数</th>
                             <th >账单操作</th>
                         </tr>
                         </thead>
@@ -110,10 +111,35 @@
                                     <td>{{$v->building_name}}</td>
                                     <td>{{$v->unit_name}}</td>
                                     <td>{{$v->room}}</td>
-                                    <td><span style="color: mediumvioletred ;font-size:18px">{{$v->total}}</span>元</td>
-                                    <td><span style="color: red;font-size:18px">{{$v->success}}</span>元</td>
+                                    <td><span style="color: mediumvioletred ;font-size:18px">
+                                            @if(array_key_exists($v->out_room_id,$total))
+                                                {{$total[$v->out_room_id]}}
+                                            @else
+                                                0
+                                            @endif
+                                        </span>元</td>
+                                    <td><span style="color: red;font-size:18px">
+                                             @if(array_key_exists($v->out_room_id,$success))
+                                                {{$success[$v->out_room_id]}}
+                                            @else
+                                                0
+                                            @endif
+                                        </span>元</td>
                                     <td>{{$v->name}}</td>
-                                    <td><span style="color: red;font-size:18px">{{$v->count}}</span>条</td>
+                                    <td><span style="color: red;font-size:18px">
+                                            @if(array_key_exists($v->out_room_id,$count))
+                                                {{$count[$v->out_room_id]}}
+                                            @else
+                                                0
+                                            @endif
+                                        </span>条</td>
+                                    <td><span style="color: red;font-size:18px">
+                                             @if(array_key_exists($v->out_room_id,$expired_bill))
+                                                {{$expired_bill[$v->out_room_id]}}
+                                            @else
+                                                0
+                                            @endif
+                                        </span>条</td>
                                     <td class="center">
                                         <a  href="{{url("merchant/billdescription?out_room_id=").$v->out_room_id}}" class="btn btn-outline btn-primary">
                                             详情
@@ -142,7 +168,7 @@
             <div class="dataTables_paginate paging_simple_numbers"
                  id="DataTables_Table_0_paginate">
                 @if(isset($billInfo)&&!$billInfo->isEmpty())
-                    {{$billInfo->appends(compact('room','out_community_id'))->render()}}
+                    {{$billInfo->appends(compact('room','out_community_id','total','success','count','expired_bill'))->render()}}
                 @endif
             </div>
         </div>
@@ -281,7 +307,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <input type="text" style="width:463px" id="remark_str" name="remark_str" class=" input ant-input ant-input-lg" placeholder="请输入推送备注">
+                                <input type="text" style="width:463px" id="remark_str" name="remark_str" class=" input ant-input ant-input-lg unnecessary" placeholder="请输入推送备注">
                                 <span class="span" style="color:red;font-size: 12px;display: none">请输入推送备注</span>
                             </div>
                         </div>
@@ -377,7 +403,7 @@
                         </div>
                         <div class="ant-col-16 ant-form-item-control-wrapper">
                             <div class="ant-form-item-control ">
-                                <input type="text" style="width:463px" id="add_remark_str" name="remark_str" class=" input ant-input ant-input-lg" placeholder="请输入推送备注">
+                                <input type="text" style="width:463px" id="add_remark_str" name="remark_str" class=" input ant-input ant-input-lg unnecessary" placeholder="请输入推送备注">
                                 <span class="span" style="color:red;font-size: 12px;display: none">请输入推送备注</span>
                             </div>
                         </div>
@@ -778,7 +804,7 @@
                     ck= false;
                 }
             });
-            obj.find('.input').each(function () {
+            obj.find('.input').not('.unnecessary').each(function () {
                 var val = $(this).val();
                 if (val == "") {
                     $(this).focus().css({
@@ -827,7 +853,7 @@
                         ck= false;
                     }
                 });
-                obj.find('.input').each(function () {
+                obj.find('.input').not('.unnecessary').each(function () {
                     var val = $(this).val();
                     if (val == "") {
                         $(this).focus().css({

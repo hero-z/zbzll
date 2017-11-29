@@ -12,9 +12,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\AdminInfo;
+use App\Models\Bill;
+use App\Models\Company_info;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class AgentMangeController extends  Controller
@@ -120,7 +124,8 @@ class AgentMangeController extends  Controller
      * @return string
      */
     public function editAgentInfo(Request $request){
-        $line=0;
+        $line='';
+        $error='';
         try{
             $root=CheckRolePermissionController::CheckRoleRoot();
             if($request->isMethod('POST')){
@@ -247,13 +252,120 @@ class AgentMangeController extends  Controller
             "msg"=>"设置失败!".$error.$line
         ]);
     }
+    //修改账号
+    public function setAgentFile(Request $request)
+    {
+        $line=0;
+        try{
+            $root=CheckRolePermissionController::CheckRoleRoot();
+            if($request->isMethod('POST')){
+                $data=$validate=[];
+                $agentid=$request->agent_id;
+                $data['name']=trim($request->name);
+                $data['email']=trim($request->email);
+                $password=trim($request->password);
+                $password_confirmation=trim($request->password_confirmation);
+                $agent=Admin::find($agentid);
+                if($root&&$agent){
+                    if($agent->email==$data['email']){
+                        array_forget($data,'email');
+                    }
+                    $updata=$data;
+                    if($password){
+                        $data['password']=$password;
+                        $data['password_confirmation']=$password_confirmation;
+                        $updata['password']=bcrypt($password);
+                    }
+                    $validate=$this->validator2($data)->errors()->toArray();
+                    if(!empty($validate)){
+                        return json_encode([
+                            'success'=>2,
+                            'msg'=>$validate
+                        ]);
+                    }
+                    $re=$agent->update($updata);
+                    if($re){
+                        return json_encode([
+                            "success"=>1,
+                            "msg"=>'修改成功'
+                        ]);
+                    }else{
+                        $error='修改失败';
+                    }
+
+                }else{
+                    $error='没有权限!';
+                }
+            }else{
+                $error='方法调用错误!';
+            }
+        }catch (\Exception $e){
+            $error=$e->getMessage();
+            $line=$e->getLine();
+        }
+        return json_encode([
+            "success"=>0,
+            "msg"=>"设置失败!".$error.$line
+        ]);
+    }
+    //重置密码
+    public function resSetPsw(Request $request)
+    {
+        $line='';
+        $error='';
+        try{
+            if($request->isMethod('GET')){
+                return view('admin.agent.resetpsw');
+            }elseif($request->isMethod('POST')){
+                $rpassword=trim($request->rpassword);
+                $password=trim($request->password);
+                $password_confirmation=trim($request->password_confirmation);
+                $user=Auth::guard('admin')->user();
+                if(Hash::check($rpassword,Auth::guard('admin')->user()->password)){
+                    $data['password']=$password;
+                    $data['password_confirmation']=$password_confirmation;
+                    $updata['password']=bcrypt($password);
+                    $validate=$this->validator3($data)->errors()->toArray();
+                    if(!empty($validate)){
+                        return json_encode([
+                            'success'=>2,
+                            'msg'=>$validate
+                        ]);
+                    }
+                    $re=$user->update($updata);
+                    if($re){
+                        return json_encode([
+                            "success"=>1,
+                            "msg"=>'修改成功'
+                        ]);
+                    }else{
+                        $error='修改失败';
+                    }
+                }else{
+                    $error='原密码错误!';
+                }
+            }
+        }catch (\Exception $e){
+            $error=$e->getMessage();
+            $line=$e->getLine();
+        }
+        if($request->isMethod('POST')){
+            return json_encode([
+                "success"=>0,
+                "msg"=>$error.$line
+            ]);
+        }
+        return view('error',compact('line','error'));
+    }
     //个人资料
     public function getMe(Request $request){
         $line=0;
         try{
             $root=CheckRolePermissionController::CheckRoleRoot();
             if($request->isMethod('GET')){
-                $agent=Auth::guard('admin')->user();
+                if($root){
+                    return redirect('admin/adminindex');
+                }
                 return view('admin.agent.me',compact('agent'));
             }elseif($request->isMethod('POST')){
                 $agentid=$request->id;
@@ -336,7 +448,8 @@ class AgentMangeController extends  Controller
      * @return string
      */
     public function addAgent(Request $request){
-        $line=0;
+        $line='';
+        $error='';
         try{
             $root=CheckRolePermissionController::CheckRoleRoot();
             if($root||CheckRolePermissionController::CheckPremission('agentManage')){
@@ -385,15 +498,16 @@ class AgentMangeController extends  Controller
      * @return string
      */
     public function delAgent(Request $request){
-        $line=0;
-        $error='未知错误';
+        $line='';
+        $error='';
         try{
             $agentid=$request->id;
             $agent=Admin::where('id',$agentid)->where('id','!=',1)->first();
-            if(CheckRolePermissionController::CheckRoleRoot()||$agent&&Auth::guard('admin')->user()->id==$agent->pid){
+            $root=CheckRolePermissionController::CheckRoleRoot();
+            if($root||$agent&&Auth::guard('admin')->user()->id==$agent->pid){
                 if($request->isMethod('POST')){
                     if($agentid!=1){
-                        if($agent&&($agent->status==2||$agent->status==0)){
+                        if($agent->status!=1){
                             $re=Admin::where('id',$agentid)->delete();
                             //删除对应资料
                             AdminInfo::where('admin_id',$agentid)->delete();
@@ -406,7 +520,25 @@ class AgentMangeController extends  Controller
                                 $error='删除代理失败';
                             }
                         }else{
-                            $error='该代理商不存在或者状态不允许删除';
+                            if($root){
+                                $bills=Bill::where('admin_id',$agentid)->get();
+                                $company=Company_info::where('admin_id',$agentid)->get();
+                                if($bills->isEmpty()){
+                                    if($company->isEmpty()){
+                                        $agent->delete();
+                                        return json_encode([
+                                            "success"=>1,
+                                            "msg"=>"删除成功"
+                                        ]);
+                                    }else{
+                                        $error='该代理商下有物业公司,请先进行物业公司转移';
+                                    }
+                                }else{
+                                    $error='该代理商下小区有账单,不建议删除,建议给空角色.';
+                                }
+                            }else{
+                                $error='该代理商不存在或者状态不允许删除';
+                            }
                         }
                     }else{
                         $error='该代理不允许删除';
@@ -439,6 +571,31 @@ class AgentMangeController extends  Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:admins',
             'phone' => 'required|string|min:11|max:11|unique:admins',
+            'password' => 'required|string|min:6|confirmed',
+        ],$message);
+    }
+
+    /**修改账号信息验证
+     * @param array $data
+     * @return mixed
+     */
+    protected function validator2(array $data)
+    {
+        $message=$this->validatorMessage();
+        return Validator::make($data, [
+            'name' => 'required|string|max:255',
+            'email' => 'string|email|max:255|unique:admins',
+            'password' => 'string|min:6|confirmed',
+        ],$message);
+    }
+    /**修改密码验证
+     * @param array $data
+     * @return mixed
+     */
+    protected function validator3(array $data)
+    {
+        $message=$this->validatorMessage();
+        return Validator::make($data, [
             'password' => 'required|string|min:6|confirmed',
         ],$message);
     }

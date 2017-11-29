@@ -130,6 +130,9 @@
                                         <option value="1" @if($bill_type&&$bill_type=='1') selected @endif >物业官方支付宝</option>
                                         <option value="2" @if($bill_type&&$bill_type=='2') selected @endif >现金</option>
                                     </select>
+                                    <select name="bill_status" id="bill_status" disabled="" style="width:250px;">
+                                        <option   selected >已结算</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -355,7 +358,6 @@
                 +"&agent_id="+$('#agent_id').val()
                 +"&bill_cost_type=" +$('#bill_cost_type').val()
                 +"&bill_type="+$('#bill_type').val()
-                +"&store_type="+$('#store_type').val()
                 +"&bill_status="+$('#bill_status').val()
                 +"&time="+$('#time').val()
                 +"&time_start="+$('#time_start').val()

@@ -45,21 +45,21 @@ class BillController extends BaseController{
                 ->where($roomwhere)
                 ->orwhere($unitwhere)
                 ->orwhere($residentwhere)
+                ->limit(8)
                 ->select( "communities.community_name","communities.out_community_id","communities.alipay_status","communities.basicservice_status","buildings.building_name","units.unit_name","room_infos.room","room_infos.out_room_id","residentinfos.name")
-                ->orderBy("communities.out_community_id","buildings.building_name","units.unit_name","room_infos.room")
+                ->orderBy("communities.out_community_id")
+                ->orderBy("units.building_id")
+                ->orderBy("room_infos.unit_id")
+                ->orderBy("room_infos.room")
                 ->paginate(8);
-            foreach($billInfo as $k=>$v){
-                $total=Bill::where('out_room_id',$v->out_room_id)->select('bill_entry_amount')->sum('bill_entry_amount');
-                $success=Bill::where('out_room_id',$v->out_room_id)->where('bill_status',"TRADE_SUCCESS")->select('bill_entry_amount')->sum('bill_entry_amount');
-                $count=Bill::where('out_room_id',$v->out_room_id)->where('bill_status',"NONE")->count();
-                $billInfo[$k]->total=$total;
-                $billInfo[$k]->success=$success;
-                $billInfo[$k]->count=$count;
-
-            }
+            $total=Bill::select( 'out_room_id',DB::raw('SUM(bill_entry_amount) as total'))->groupBy('out_room_id')->pluck('total',"out_room_id")->toArray();
+            $success=Bill::where('bill_status',"TRADE_SUCCESS")->select('bill_entry_amount',DB::raw('SUM(bill_entry_amount) as success'))->groupBy('out_room_id')->pluck('success',"out_room_id")->toArray();
+            $count=Bill::where('bill_status',"NONE")->select('id','out_room_id',DB::raw('count(id) as count'))->groupBy('out_room_id')->pluck('count',"out_room_id")->toArray();
+            $expired_bill=Bill::where('deadline',"<",date("Y-m-d"))->where('bill_status',"!=","TRADE_SUCCESS")->select('id','out_room_id',DB::raw('count(id) as expired_bill'))->groupBy('out_room_id')->pluck('expired_bill',"out_room_id")->toArray();
             //小区信息
             $communityInfo=Community::whereIn('merchant_id',$merchant_id)->select('community_name','out_community_id')->get();
-            return view ('merchant.bill.billinfo',compact('billInfo','communityInfo','out_community_id','room'));
+            return view ('merchant.bill.billinfo',compact('billInfo','communityInfo',
+                'out_community_id','room','total','success','count','expired_bill'));
         }catch(\Exception $e){
             $error=$e->getMessage();
             $line=$e->getLine();
@@ -71,13 +71,14 @@ class BillController extends BaseController{
     {
         $out_room_id=$request->out_room_id;
         try{
-            $billInfo=DB::table('bills')
-                    ->join('room_infos','bills.out_room_id',"=","room_infos.out_room_id")
-                    ->where('bills.out_room_id',$out_room_id)
-                    ->select('room_infos.status','bills.*')
-                    ->orderBy('bills.created_at',"bills.release_day")
+            $room=[];
+            $roomInfo=RoomInfo::pluck("status",'out_room_id')->toArray();
+            $billInfo=Bill::where('out_room_id',$out_room_id)
+                    ->select('bills.*')
+                    ->orderBy("bills.acct_period","desc")
                     ->paginate(8);
-            return view('merchant.bill.billdescription',compact('billInfo','out_room_id'));
+            $expired_bill=Bill::where('deadline',"<",date("Y-m-d"))->where('bill_status',"!=","TRADE_SUCCESS")->pluck('out_room_id',"id")->toArray();
+            return view('merchant.bill.billdescription',compact('billInfo','out_room_id',"roomInfo","expired_bill"));
         }catch(\Exception $e){
             $error=$e->getMessage();
             $line=$e->getLine();
@@ -168,10 +169,6 @@ class BillController extends BaseController{
                     $data['bill_entry_amount']=$v[5];
                     $data['deadline']=$v[6];
                     if( Bill::create($data)){
-                        array_push($v,'数据异常,无法导入,请仔细检查');
-                        array_push($v,date("Y-m-d H:i:s"));
-                        $errorCheck[]=$v;
-                        continue;
                     }else{
                         array_push($v,'数据异常,无法导入,请仔细检查');
                         array_push($v,date("Y-m-d H:i:s"));

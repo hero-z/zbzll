@@ -21,7 +21,7 @@
                 <div class="form-group" style="float: left;width: 250px;" id="data_1">
                     <div class="input-group date">
                         <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                        <input type="text" class="form-control" id="time" name="time" placeholder="出账日期" value="@if(isset($time)){{$time or ''}}@endif">
+                        <input type="text" class="form-control" id="time" name="time" placeholder="所属账期" value="@if(isset($time)){{$time or ''}}@endif">
                     </div>
                 </div>
                 <div class="form-group" style="float: left">
@@ -101,14 +101,13 @@
                         <thead>
                         <tr>
                             <th >所属员工</th>
-                            <th >所属小区</th>
-                            <th >房间号</th>
+                            <th >所属房间</th>
                             <th >金额</th>
                             <th >支付方式</th>
                             <th>费用类型</th>
                             <th>账单状态</th>
                             <th>出账日期</th>
-                            <th>账期起止日期</th>
+                            <th>所属账期</th>
                             <th>缴费截止日期</th>
                             <th>备注</th>
                             <th>更新时间</th>
@@ -119,8 +118,7 @@
                             @foreach($lists as $v )
                                 <tr class="gradeA">
                                     <td>{{$v->merchant_name}}</td>
-                                    <td>{{$v->community_name.$v->building_name.$v->unit_name}}</td>
-                                    <td>{{$v->room}}</td>
+                                    <td>{{$v->community_name.(array_key_exists($v->out_room_id,$roominfos)?$roominfos[$v->out_room_id]:'')}}</td>
                                     <td>{{$v->bill_entry_amount}}</td>
                                     <td>
                                         @if($v->type=='alipay')
@@ -249,9 +247,9 @@
                 forceParse:1,
                 todayHighlight:!0,
                 autoclose:!0,
-                minView:0,
-                minViewMode:0,
-                startView:0
+                minViewMode:1,
+                startView:0,
+                format:"yyyy-mm"
 //                startView:1,
 //                showMeridian:true,
             });

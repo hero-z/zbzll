@@ -104,11 +104,16 @@
                                         <td>{{$v->created_at}}</td>
                                         <td class="center">
                                             <button type="button" onclick="ShowDiv('agentFile_box','mask');getagentinfo({{$v->id}});checkstatus({{$v->status}})"
-                                                    class="btn jurisdiction btn-outline btn-success">@if($v->status==1)查看资料@else查看审核@endif
+                                                    class="btn jurisdiction btn-outline btn-success">@if($v->status==1)个人资料@else审核@endif
                                             </button>
                                             @if(Auth::guard('admin')->user()->hasRole('root')||Auth::guard('admin')->user()->id==$v->pid&&$v->status!=1)
                                                 <button type="button" onclick="ShowDiv('agentUpdateFile_box','mask');getagentinfo({{$v->id}})"
                                                         class="btn jurisdiction btn-outline btn-success">更新资料
+                                                </button>
+                                            @endif
+                                            @if(Auth::guard('admin')->user()->hasRole('root'))
+                                                <button type="button" onclick="ShowDiv('agentEditFile_box','mask');setfile({{$v->id.',"'.$v->name.'"'.',"'.$v->email.'"'}})"
+                                                        class="btn jurisdiction btn-outline btn-success">修改账号信息
                                                 </button>
                                             @endif
                                             @if(Auth::guard('admin')->user()->hasRole('root')&&$v->status==1)
@@ -116,11 +121,9 @@
                                                         class="btn jurisdiction btn-outline btn-success">分配角色
                                                 </button>
                                             @endif
-                                            @if($v->status==2||$v->status==0)
-                                                <button type="button" onclick='del("{{$v->id}}")'
-                                                        class="btn btn-outline btn-danger">删除
-                                                </button>
-                                            @endif
+                                            <button type="button" onclick='del("{{$v->id}}")'
+                                                    class="btn btn-outline btn-danger">删除
+                                            </button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -519,6 +522,73 @@
             </div>
         </div>
     </div>
+    {{--修改资料--}}
+    <div id="agentEditFile_box" class="ant-modal" style="width: 800px; transform-origin: 1054px 10px 0px;display: none;">
+        <div class="ant-modal-content">
+            <button  class="ant-modal-close" onclick="CloseDiv('agentEditFile_box','mask')">
+                <span class="ant-modal-close-x" ></span>
+            </button>
+            <div class="ant-modal-header">
+                <div class="ant-modal-title" >修改账号信息</div>
+            </div>
+            <div class="ant-modal-body">
+                <form class="ant-form ant-form-horizontal">
+                    <div class="ant-row ant-form-item">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label  class="ant-form-item-required" >代理商名称</label>
+                        </div>
+                        <input type="hidden" id="editagentfileid" value="">
+                        <div class="ant-col-16 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <input type="text" id="editagentfilename" name="editagentfilename" value="" class="input ant-input ant-input-lg" required>
+                                <span id="editagentfile_nameerror" style="color: red;font-size: 12px;display: none"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label  class="ant-form-item-required" >邮箱</label>
+                        </div>
+                        <input type="hidden" id="editagentfileid" value="">
+                        <div class="ant-col-16 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <input type="text" id="editagentfileemail" name="editagentfileemail" value="" class="input ant-input ant-input-lg" required>
+                                <span id="editagentfile_emailerror" style="color: red;font-size: 12px;display: none"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label  class="ant-form-item-required" >新密码</label>
+                        </div>
+                        <div class="ant-col-16 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <input type="password" id="editagentfile_password" placeholder="如需修改请填写新的密码,否则不要填写" name="upagentid_card_no"  class="input ant-input ant-input-lg" required>
+                                <span id="editagentfile_passworderror" style="color: red;font-size: 12px;display: none"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label  class="ant-form-item-required" >确认新密码</label>
+                        </div>
+                        <div class="ant-col-16 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <input type="password" id="editagentfile_repassword" placeholder="确认新的密码" name="upagentbank_card_no"  class="input ant-input ant-input-lg" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item modal-btn form-button" style=" text-align: center;">
+                        <div class="ant-col-22 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <button type="button" class="ant-btn ant-btn-primary ant-btn-lg" onclick="editagentfile()" id=""><span>保存</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 @section('js')
     <script src="{{asset('/adminui/js/plugins/peity/jquery.peity.min.js')}}"></script>
@@ -733,6 +803,47 @@
                     }
                 }, 'json');
         }
+        //修改资料
+        function setfile(id,name,email) {
+            $('#editagentfileid').val(id);
+            $('#editagentfilename').val(name);
+            $('#editagentfileemail').val(email);
+        }
+        function editagentfile() {
+            if($('#editagentfilename').val()==''){
+                layer.msg('代理商名称不能为空',{time:2000});
+                $('#editagentfilename').focus();
+            }else{
+                $.post("{{url('admin/setagentfile')}}", {_token: "{{csrf_token()}}",
+                        agent_id: $('#editagentfileid').val(),
+                        email: $('#editagentfileemail').val(),
+                        name: $('#editagentfilename').val(),
+                        password: $('#editagentfile_password').val(),
+                        password_confirmation: $('#editagentfile_repassword').val()
+                    },
+                    function (data) {
+                        if (data.success==1) {
+                            layer.msg(data.msg,{time:500});
+                            setTimeout(function(){window.location.reload()},500);
+                        }else if(data.success==2){
+                            var errors=data.msg;
+                            var msgs='';
+                            for( var error in errors){
+                                var  obj=$('#editagentfile_'+error+'error');
+                                obj.css('display','block');
+                                for(var msg in errors[""+error]){
+                                    msgs+=errors[""+error][""+msg];
+                                }
+                                obj.text(msgs);
+                                msgs='';
+                            }
+                        } else {
+                            layer.msg(data.msg,{time:3000});
+
+                        }
+                    }, 'json');
+            }
+        }
         //弹出隐藏层
         function ShowDiv(show_div,bg_div){
             document.getElementById(show_div).style.display='block';
@@ -756,6 +867,7 @@
             $('.select').next().hide();
             $('.role_id').remove();
             $("#agentFile_box").find('input').val('');
+            $("#agentEditFile_box").find('input').val('');
         }
         function CloseAll(show_div,bg_div){
             document.getElementById(show_div).style.display='none';
