@@ -37,7 +37,8 @@
                     </span>
                 </li>
                 <li class="login-sub">
-                    <input type="submit" name="Submit" value="登录" />
+                    <input style="margin-left: 90px;" type="submit" name="Submit" value="登录" />
+                    <a href="{{url('admin/forget')}}" style="display: inline-block;color: grey;margin-left: 10px ">忘记密码?</a>
                 </li>
             </form>
         </div>
@@ -56,8 +57,15 @@
             dist : 6000,
             e_dist : 20000,
             max_conn : 10
-        }
+        };
         CanvasParticle(config);
+        $("a").mouseover(function(){
+            $(this).css("color", "red");
+        });
+
+        $("a").mouseout(function(){
+            $(this).css("color", "grey");
+        });
     }
 </script>
 <script type="text/javascript" src="{{asset('ft5/js/canvas-particle.js')}}"></script>

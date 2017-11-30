@@ -116,14 +116,16 @@
                                     <td>{{$v->buyer_logon_id}}</td>
                                     <td>{{$v->created_at}}</td>
                                     <td class="center">
-                                        @mpermission('uploadBill')
+                                        @mpermission('doOverdueBill')
                                         @if($v->bill_status!="NONE"&&$roomInfo[$v->out_room_id]!="NONE")
                                         @if(array_key_exists($v->id,$expired_bill))
-                                                <button type="button" onclick='uploadBill("{{$v->id}}","{{$v->out_community_id}}")'
+                                                <button type="button" onclick='ShowDiv("add_bill","mask");addBill("{{$v->id}}","{{$v->out_community_id}}")'
                                                         class="btn jurisdiction btn-outline btn-warning">逾期处理
                                                 </button>
                                         @endif
                                         @endif
+                                        @endpermission
+                                        @mpermission('uploadBill')
                                         @if(!array_key_exists($v->id,$expired_bill)&&$v->bill_status=="NONE")
                                                 <button type="button" onclick='uploadBill("{{$v->id}}","{{$v->out_community_id}}")'
                                                         class="btn jurisdiction btn-outline btn-success">同步至支付宝
@@ -225,8 +227,44 @@
             </div>
         </div>
     </div>
+    {{--账单逾期处理--}}
+    <div id="add_bill" class="ant-modal" style="width: 900px; transform-origin: 1054px 10px 0px;display: none">
+        <div class="ant-modal-content">
+            <button class="ant-modal-close"  onclick="CloseDiv('add_bill','mask')">
+                <span class="ant-modal-close-x" ></span>
+            </button>
+            <div class="ant-modal-header">
+                <div class="ant-modal-title">逾期账单处理</div>
+            </div>
+            <div class="ant-modal-body">
+                <form class="ant-form ant-form-horizontal">
+                    <input type="hidden" value="simple" name="type" id="type">
+                    <div class="form-group" id="data_3">
+                        <div class="ant-col-6 ant-form-item-label">
+                            <label class="ant-form-item-required">截止日期</label>
+                        </div>
+                        <div class="input-group date" style="width:463px">
+                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                            <input type="text" class="form-control input" placeholder="请选择截止日期"  value="" id="deadline">
+                            <span class="span" style="color:red;font-size: 12px;display: none">请选择截止日期</span>
+                        </div>
+                    </div>
+                    <div class="ant-row ant-form-item modal-btn form-button"
+                         style="margin-top: 24px; text-align: center;">
+                        <div class="ant-col-22 ant-form-item-control-wrapper">
+                            <div class="ant-form-item-control ">
+                                <button type="button" class="ant-btn ant-btn-primary ant-btn-lg" id="bill_submit"><span>提交</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 @section('js')
+    <script src="{{asset('/adminui/js/plugins/datapicker/bootstrap-datepicker.js')}}"></script>
     <script src="{{asset('/adminui/js/chosen.jquery.js')}}"></script>
     <script>
         function uploadBill(id,out_community_id){
@@ -321,6 +359,54 @@
             }
 
         });
+        //逾期账单处理
+        function addBill(id,out_community_id){
+            $("#bill_submit").click(function(){
+                var obj=$("#add_bill");
+                var  ck=true;
+                obj.find('.input').each(function () {
+                    var val = $(this).val();
+                    if (val == "") {
+                        $(this).focus().css({
+                            "border": "1px solid red"
+                        });
+                        $(this).next().show();
+                        ck= false;
+                    }
+                });
+                if(ck) {
+                    deadline = $('#deadline').val();
+                    $.post("{{url('merchant/dooverduebill')}}", {
+                            _token: "{{csrf_token()}}",
+                            id: id,
+                            out_community_id: out_community_id,
+                            deadline:deadline
+                        },
+                        function (data) {
+                            if (data.success) {
+                                layer.msg(data.msg, {time: 500});
+                                setTimeout(function () {
+                                    window.location.reload()
+                                }, 500);
+                            } else {
+                                layer.msg(data.msg, {time: 2000});
+
+                            }
+                        }, 'json');
+                }
+            });
+        };
+        $("#data_3 .input-group.date").datepicker({
+            todayBtn:"linked",
+            keyboardNavigation:!1,
+            forceParse:1,
+            todayHighlight:!0,
+            autoclose:!0,
+            minView:0,
+            minViewMode:0,
+            startView:0
+        });
+        $("#data_3 .input-daterange").datepicker('setStartDate',new Date());
         //弹出隐藏层
         function ShowDiv(show_div,bg_div){
             document.getElementById(show_div).style.display='block';

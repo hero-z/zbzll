@@ -191,6 +191,7 @@ Route::group(['prefix' => 'merchant','namespace' => 'Merchant','middleware'=>'au
     $router->post('deletebill',"BillController@deleteBill");
     $router->get('ceshi',"CommunityController@ceshi");
     $router->post('bill_month','MerchantHomeController@bill_month');
+    $router->post('dooverduebill','BillController@doOverdueBill');
     //统计管理
     $router->any("billquery","StatisticalManageController@billQuerry");
     //系统设置

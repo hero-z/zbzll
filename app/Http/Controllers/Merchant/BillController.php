@@ -656,4 +656,81 @@ class BillController extends BaseController{
             "msg"=>"删除失败".$error.$line
         ]);
     }
+    //逾期账单账单处理
+    public function doOverdueBill(Request $request)
+    { $line=0;
+        $error="未知错误";
+        try{
+            if(CheckRolePermissionController::CheckRoleRoot()||CheckRolePermissionController::CheckPremission('doOverdueBill')){
+                $id=$request->id;
+                $out_community_id=$request->out_community_id;
+                $deadline=$request->deadline;
+                //获取物业公司主账号id
+                $merchant_id=CheckMerchantController::selectMerchant(Auth::guard('merchant')->user()->pid);
+                //获取物业公司授权token
+                $app_auth_token=Company_info::where('merchant_id',$merchant_id)->where('status',1)->select('app_auth_token')->first()->app_auth_token;
+                //获取要同步的账单
+                $bill_set=Bill::where("id",$id)
+                    ->select("out_room_id","bill_entry_id","cost_type","bill_entry_amount","acct_period","release_day","remark_str")
+                    ->get();
+                //遍历时间格式转为字符串格式
+                foreach($bill_set as $k=>$v){
+                    $bill_set[$k]->acct_period='归属账期'.str_replace('-','',$bill_set[$k]->acct_period);
+                    $bill_set[$k]->release_day=str_replace('-','',$bill_set[$k]->release_day);
+                    $bill_set[$k]->deadline=str_replace('-','',$deadline);
+                    if($bill_set[$k]->cost_type=="property_fee"){
+                        $bill_set[$k]->cost_type="物业管理费";
+                    }
+                    if($bill_set[$k]->cost_type=="public_property_fee"){
+                        $bill_set[$k]->cost_type="物业管理费公摊";
+                    }
+                    if($bill_set[$k]->cost_type=="rubbish_fee"){
+                        $bill_set[$k]->cost_type="垃圾费";
+                    }
+                    if($bill_set[$k]->cost_type=="elevator_fee"){
+                        $bill_set[$k]->cost_type="电梯费";
+                    }
+                }
+                $community=Community::where('out_community_id',$out_community_id)->first();
+                $data['batch_id'] = time() . date("YmdHis") . rand(1000000, 9999999);
+                $data['community_id'] = $community->community_id;
+                $bill_sets=json_encode($bill_set);
+                $aop = $this->AopClient ();
+                $aop->method = "alipay.eco.cplife.bill.batch.upload";
+                $requests = new AlipayEcoCplifeBillBatchUploadRequest();
+                $requests->setBizContent("{" .
+                    "\"batch_id\":\"" . $data['batch_id'] . "\"," .
+                    "\"community_id\":\"" . $data['community_id'] . "\"," .
+                    "      \"bill_set\":" .$bill_sets.
+                    "  }");
+                $result = $aop->execute ( $requests,"",$app_auth_token);
+                $responseNode = str_replace(".", "_", $requests->getApiMethodName()) . "_response";
+                $resultCode = $result->$responseNode->code;
+                if(!empty($resultCode)&&$resultCode == 10000){
+                    $data['deadline']=$deadline;
+                    foreach($bill_set as $k=>$v){
+                        Bill::where("bill_entry_id",$bill_set[$k]->bill_entry_id)->update($data);
+                    }
+                    return json_encode([
+                        "success"=> 1,
+                        "msg"=>'逾期账单处理成功,已重新同步到支付宝!'
+                    ]);
+                } else {
+                    return json_encode([
+                        "success"=> 0,
+                        "msg"=>"逾期账单处理失败".$result->$responseNode->sub_msg
+                    ]);
+                }
+            }else{
+                $error='亲,你还没有该操作权限!';
+            }
+        }catch (\Exception $e){
+            $error=$e->getMessage();
+            $line=$e->getLine();
+        }
+        return json_encode([
+            "success"=>0,
+            "msg"=>"逾期账单处理失败".$error.$line
+        ]);
+    }
 }

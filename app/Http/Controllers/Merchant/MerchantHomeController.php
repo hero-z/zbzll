@@ -193,6 +193,7 @@ class MerchantHomeController extends Controller
            }
 
         }
+        $age=[];
         foreach ($community_amount as $key=>$value){
             $age[$key] = $value['rate'];
         }
