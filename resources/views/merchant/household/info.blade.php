@@ -54,7 +54,11 @@
                         @if(isset($household)&&!$household->isEmpty())
                             @foreach($household as $k=>$v )
                                 <tr class="gradeA">
-                                    <td>{{$v->community_name}}</td>
+                                    <td>
+                                        @if(array_key_exists($v->out_room_id,$community))
+                                        {{$community[$v->out_room_id]}}
+                                        @endif
+                                    </td>
                                     <td>{{$v->address}}</td>
                                     <td>{{$v->room}}</td>
                                     <td>{{$v->name}}</td>

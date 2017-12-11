@@ -35,19 +35,24 @@ class HouseholdManageController extends Controller
                     $namewhere[]=['residentinfos.name','like','%'.$name."%"];
                 }
                 $merchant_id=CheckMerchantController::CheckMerchant(Auth::guard('merchant')->user()->id);
+                $roomInfo=DB::table("room_infos")
+                    ->join("communities","room_infos.out_community_id","=","communities.out_community_id")
+                    ->where($where)
+                    ->whereIn("communities.merchant_id",$merchant_id)
+                    ->select("room_infos.out_room_id",'communities.community_name');
+                $community=$roomInfo->pluck('community_name','out_room_id')->toArray();
+                $roomInfo=$roomInfo ->pluck('out_room_id')->toArray();
                 $household=DB::table('residentinfos')
                     ->join('room_infos','residentinfos.out_room_id','room_infos.out_room_id')
-                    ->join('communities','communities.out_community_id','room_infos.out_community_id')
-                    ->whereIn("communities.merchant_id",$merchant_id)
+                    ->whereIn("room_infos.out_room_id",$roomInfo)
                     ->where("residentinfos.type",1)
-                    ->where($where)
                     ->orwhere($namewhere)
-                    ->select("communities.community_name",'residentinfos.id','residentinfos.name','residentinfos.out_room_id','residentinfos.phone',"room_infos.address","room_infos.room","residentinfos.remark","residentinfos.created_at")
+                    ->select('residentinfos.id','residentinfos.name','residentinfos.out_room_id','residentinfos.phone',"room_infos.address","room_infos.room","residentinfos.remark","residentinfos.created_at")
                     ->orderBy("residentinfos.created_at","DESC")
                     ->paginate(8);
                 //小区信息
                 $communityInfo=Community::whereIn('merchant_id',$merchant_id)->select('community_name','out_community_id')->get();
-                return view ('merchant.household.info',compact('household','communityInfo','out_community_id','name'));
+                return view ('merchant.household.info',compact("community",'household','communityInfo','out_community_id','name'));
             }else{
                 $error='你还没有权限!';
             }
