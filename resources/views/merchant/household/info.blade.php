@@ -55,8 +55,8 @@
                             @foreach($household as $k=>$v )
                                 <tr class="gradeA">
                                     <td>
-                                        @if(array_key_exists($v->out_room_id,$community))
-                                        {{$community[$v->out_room_id]}}
+                                        @if(array_key_exists($v->out_community_id,$communitys))
+                                        {{$communitys[$v->out_community_id]}}
                                         @endif
                                     </td>
                                     <td>{{$v->address}}</td>

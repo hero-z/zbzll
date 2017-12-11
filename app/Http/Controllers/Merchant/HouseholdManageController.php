@@ -25,34 +25,32 @@ class HouseholdManageController extends Controller
             if(CheckRolePermissionController::CheckRoleRoot()||CheckRolePermissionController::CheckPremission('householdManage')){
                 $where=[];
                 $namewhere=[];
+                $roomwhere=[];
                 $out_community_id=$request->get("out_community_id");
                 if($out_community_id){
                     $where[]=["communities.out_community_id",$out_community_id];
                 }
                 $name=$request->name;
                 if($name){
-                    $where[]=['room_infos.room','like','%'.$name."%"];
+                    $roomwhere[]=['room_infos.room','like','%'.$name."%"];
                     $namewhere[]=['residentinfos.name','like','%'.$name."%"];
                 }
                 $merchant_id=CheckMerchantController::CheckMerchant(Auth::guard('merchant')->user()->id);
-                $roomInfo=DB::table("room_infos")
-                    ->join("communities","room_infos.out_community_id","=","communities.out_community_id")
-                    ->where($where)
-                    ->whereIn("communities.merchant_id",$merchant_id)
-                    ->select("room_infos.out_room_id",'communities.community_name');
-                $community=$roomInfo->pluck('community_name','out_room_id')->toArray();
-                $roomInfo=$roomInfo ->pluck('out_room_id')->toArray();
+                $community=Community::whereIn('merchant_id',$merchant_id) ->where($where)->select('out_community_id',"community_name");
+                $out_community_ids=$community->pluck('out_community_id')->toArray();
                 $household=DB::table('residentinfos')
                     ->join('room_infos','residentinfos.out_room_id','room_infos.out_room_id')
-                    ->whereIn("room_infos.out_room_id",$roomInfo)
+                    ->whereIn('room_infos.out_community_id',$out_community_ids)
                     ->where("residentinfos.type",1)
+                    ->where($roomwhere)
                     ->orwhere($namewhere)
-                    ->select('residentinfos.id','residentinfos.name','residentinfos.out_room_id','residentinfos.phone',"room_infos.address","room_infos.room","residentinfos.remark","residentinfos.created_at")
+                    ->select('residentinfos.id','residentinfos.name',"room_infos.out_community_id",'residentinfos.out_room_id','residentinfos.phone',"room_infos.address","room_infos.room","residentinfos.remark","residentinfos.created_at")
                     ->orderBy("residentinfos.created_at","DESC")
                     ->paginate(8);
+                $communitys=$community->pluck("community_name",'out_community_id')->toArray();
                 //小区信息
                 $communityInfo=Community::whereIn('merchant_id',$merchant_id)->select('community_name','out_community_id')->get();
-                return view ('merchant.household.info',compact("community",'household','communityInfo','out_community_id','name'));
+                return view ('merchant.household.info',compact("communitys",'household','communityInfo','out_community_id','name'));
             }else{
                 $error='你还没有权限!';
             }
