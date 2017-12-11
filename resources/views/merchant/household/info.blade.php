@@ -51,8 +51,10 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @if(isset($household)&&!$household->isEmpty())
+                        @if(isset($household)&&!$household->isEmpty()&&isset($residentInfo)&&!$residentInfo->isEmpty())
                             @foreach($household as $k=>$v )
+                                @foreach($residentInfo as $key=>$value)
+                                    @if($v->out_room_id==$value->out_room_id)
                                 <tr class="gradeA">
                                     <td>
                                         @if(array_key_exists($v->out_community_id,$communitys))
@@ -61,12 +63,12 @@
                                     </td>
                                     <td>{{$v->address}}</td>
                                     <td>{{$v->room}}</td>
-                                    <td>{{$v->name}}</td>
-                                    <td>{{$v->phone}}</td>
-                                    <td>{{$v->remark}}</td>
+                                    <td>{{$value->name}}</td>
+                                    <td>{{$value->phone}}</td>
+                                    <td>{{$value->remark}}</td>
                                     <td>{{$v->created_at}}</td>
                                     <td class="center">
-                                        <button type="button" onclick='ShowDiv("household_edit","mask");gethousehold("{{$v->id}}")'
+                                        <button type="button" onclick='ShowDiv("household_edit","mask");gethousehold("{{$value->id}}")'
                                                 class="btn jurisdiction btn-outline btn-success">编辑
                                         </button>
                                         <button type="button" onclick='ShowDiv("house_edit","mask");gethouse("{{$v->out_room_id}}")'
@@ -74,6 +76,8 @@
                                         </button>
                                     </td>
                                 </tr>
+                                @endif
+                                @endforeach
                             @endforeach
                         @endif
                         </tbody>

@@ -32,25 +32,49 @@ class HouseholdManageController extends Controller
                 }
                 $name=$request->name;
                 if($name){
-                    $roomwhere[]=['room_infos.room','like','%'.$name."%"];
-                    $namewhere[]=['residentinfos.name','like','%'.$name."%"];
+                    if(preg_match('/[0-9]/', $name)){
+                        $roomwhere[]=['room_infos.room','like','%'.$name."%"];
+                    }else{
+                        $namewhere[]=['residentinfos.name','like','%'.$name."%"];
+                    }
                 }
                 $merchant_id=CheckMerchantController::CheckMerchant(Auth::guard('merchant')->user()->id);
                 $community=Community::whereIn('merchant_id',$merchant_id) ->where($where)->select('out_community_id',"community_name");
                 $out_community_ids=$community->pluck('out_community_id')->toArray();
-                $household=DB::table('residentinfos')
-                    ->join('room_infos','residentinfos.out_room_id','room_infos.out_room_id')
-                    ->whereIn('room_infos.out_community_id',$out_community_ids)
-                    ->where("residentinfos.type",1)
-                    ->where($roomwhere)
-                    ->orwhere($namewhere)
-                    ->select('residentinfos.id','residentinfos.name',"room_infos.out_community_id",'residentinfos.out_room_id','residentinfos.phone',"room_infos.address","room_infos.room","residentinfos.remark","residentinfos.created_at")
-                    ->orderBy("residentinfos.created_at","DESC")
-                    ->paginate(8);
+                if($namewhere){
+                    $out_room_id=[];
+                    $residentInfo=Residentinfo::where($namewhere)->select("remark",'id','name','out_room_id','phone')->get();
+                    if($residentInfo){
+                        foreach($residentInfo as $v){
+                            $out_room_id[]=$v->out_room_id;
+                        }
+                    }
+                    $household=DB::table('room_infos')
+                        ->whereIn('room_infos.out_community_id',$out_community_ids)
+                        ->whereIn("out_room_id",$out_room_id)
+                        ->where($roomwhere)
+                        ->select("out_community_id","address","room","out_room_id","created_at")
+                        ->orderBy("out_community_id","room")
+                        ->paginate(8);
+                }else{
+                    $household=DB::table('room_infos')
+                        ->whereIn('room_infos.out_community_id',$out_community_ids)
+                        ->where($roomwhere)
+                        ->select("out_community_id","address","room",'out_room_id',"created_at")
+                        ->orderBy("out_community_id","room")
+                        ->paginate(8);
+                    $out_room_id=[];
+                    if($household){
+                        foreach ($household as $v){
+                            $out_room_id[]=$v->out_room_id;
+                        }
+                    }
+                    $residentInfo=Residentinfo::whereIn('out_room_id',$out_room_id)->where("residentinfos.type",1)->select("remark",'id','name','out_room_id','phone')->get();
+                }
                 $communitys=$community->pluck("community_name",'out_community_id')->toArray();
                 //小区信息
                 $communityInfo=Community::whereIn('merchant_id',$merchant_id)->select('community_name','out_community_id')->get();
-                return view ('merchant.household.info',compact("communitys",'household','communityInfo','out_community_id','name'));
+                return view ('merchant.household.info',compact('residentInfo',"communitys",'household','communityInfo','out_community_id','name'));
             }else{
                 $error='你还没有权限!';
             }
@@ -242,9 +266,9 @@ class HouseholdManageController extends Controller
                         }
                     }
                     return json_encode([
-                                "success"=>1,
-                                "msg"=>$count==0?'操作成功':$count.'条操作异常'
-                            ]);
+                        "success"=>1,
+                        "msg"=>$count==0?'操作成功':$count.'条操作异常'
+                    ]);
                 }else{
                     $error='方法调用出错';
                 }
