@@ -95,7 +95,6 @@
                             <th>物业系统编号</th>
                             <th >支付宝状态</th>
                             <th >业主</th>
-                            <th>联系方式</th>
                             <th >创建时间</th>
                             <th >操作</th>
                         </tr>
@@ -106,7 +105,7 @@
                                 <tr class="gradeA">
                                     <td>{{$v->community_name}}</td>
                                     <td>{{$v->area}}平方米</td>
-                                    <td>{{$v->building_name}}{{$v->unit_name}}{{$v->room}}</td>
+                                    <td>{{$v->address}}</td>
                                     <td>{{$v->out_room_id}}</td>
                                     <td>
                                         @if($v->status=="ONLINE")
@@ -115,8 +114,11 @@
                                             未同步
                                         @endif
                                     </td>
-                                    <td>{{$v->name}}</td>
-                                    <td>{{$v->phone}}</td>
+                                    <td>
+                                        @if(array_key_exists($v->out_room_id,$residentInfo))
+                                        {{$residentInfo[$v->out_room_id]}}
+                                        @endif
+                                    </td>
                                     <td>{{$v->created_at}}</td>
                                     <td class="center">
                                         @if($v->status=="NONE"&&$v->alipay_status!="NONE"&&$v->alipay_status!="OFFLINE"&&$v->basicservice_status!="NONE"&&$v->basicservice_status!="OFFLINE")
@@ -704,6 +706,7 @@
             }
         });
         //批量添加房屋
+        ck2=true;
         $('#rooms_submit').click(function () {
             out_community_id=$("#rooms_name").val();
             building_id=$("#rooms_building").val();
@@ -722,7 +725,8 @@
                 layer.msg('导入数据不能为空',{time:1000});
                 ck= false;
             }
-            if(ck) {
+            if(ck&&ck2) {
+                ck2=false;
                 $.post("{{url('merchant/createrooms')}}", {
                         _token: "{{csrf_token()}}",
                         out_community_id: out_community_id,
@@ -735,6 +739,7 @@
                         area:$("#room_area").val()
                     },
                     function (data) {
+                        ck2=true;
                         if (data.success) {
                             layer.msg(data.msg, {time: 500});
                             setTimeout(function () {
@@ -831,12 +836,14 @@
                     ck= false;
                 }
             });
-            if(ck) {
+            if(ck&&ck2) {
+                ck2=false;
                 $.post("{{url('merchant/uploadrooms')}}", {
                         _token: "{{csrf_token()}}",
                         unit_id: unit_id,
                     },
                     function (data) {
+                        ck2=true;
                         if (data.success) {
                             layer.msg(data.msg, {time: 500});
                             setTimeout(function () {
@@ -975,7 +982,8 @@
         function CloseDiv(show_div,bg_div){
             document.getElementById(show_div).style.display='none';
             document.getElementById(bg_div).style.display='none';
-            $('#template').hide()
+            $('#template').hide();
+            window.location.reload()
 
         }
     </script>

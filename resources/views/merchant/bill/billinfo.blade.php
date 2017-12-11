@@ -91,9 +91,8 @@
                     <table class="table table-striped table-bordered table-hover dataTables-example">
                         <thead>
                         <tr>
-                            <th >所属小区</th>
-                            <th>楼宇</th>
-                            <th>单元</th>
+                            <th>所属小区</th>
+                            <th >具体位置</th>
                             <th >归属房屋</th>
                             <th>应缴金额</th>
                             <th>已缴金额</th>
@@ -108,8 +107,7 @@
                             @foreach($billInfo as $v )
                                 <tr class="gradeA">
                                     <td>{{$v->community_name}}</td>
-                                    <td>{{$v->building_name}}</td>
-                                    <td>{{$v->unit_name}}</td>
+                                    <td>{{$v->address}}</td>
                                     <td>{{$v->room}}</td>
                                     <td><span style="color: mediumvioletred ;font-size:18px">
                                             @if(array_key_exists($v->out_room_id,$total))
@@ -125,7 +123,11 @@
                                                 0
                                             @endif
                                         </span>元</td>
-                                    <td>{{$v->name}}</td>
+                                    <td>
+                                        @if(array_key_exists($v->out_room_id,$residentInfo))
+                                            {{$residentInfo[$v->out_room_id]}}
+                                        @endif
+                                    </td>
                                     <td><span style="color: red;font-size:18px">
                                             @if(array_key_exists($v->out_room_id,$count))
                                                 {{$count[$v->out_room_id]}}
@@ -972,7 +974,7 @@
             }
         });
 
-
+        var ck2=true;
 
         //批量添加房屋
         $('#bills_submit').click(function () {
@@ -991,13 +993,15 @@
                 layer.msg('导入数据不能为空',{time:1000});
                 ck= false;
             }
-            if(ck) {
+            if(ck&&ck2) {
+                ck2=false;
                 $.post("{{url('merchant/addbills')}}", {
                         _token: "{{csrf_token()}}",
                         file:file,
                         cost_type:$("#cost_types").val(),
                     },
                     function (data) {
+                        ck2=true;
                         if (data.success) {
                             layer.msg(data.msg, {time: 500});
                             setTimeout(function () {
@@ -1067,13 +1071,15 @@
                     ck= false;
                 }
             });
-            if(ck) {
+            if(ck&&ck2) {
+                ck2=false;
                 $.post("{{url('merchant/uploadbills')}}", {
                         _token: "{{csrf_token()}}",
                         unit_id: unit_id,
                         out_community_id:out_community_id
                     },
                     function (data) {
+                        ck2=true;
                         if (data.success) {
                             layer.msg(data.msg, {time: 500});
                             setTimeout(function () {
@@ -1114,7 +1120,8 @@
         function CloseDiv(show_div,bg_div){
             document.getElementById(show_div).style.display='none';
             document.getElementById(bg_div).style.display='none';
-            $('#template').hide()
+            $('#template').hide();
+            window.location.reload()
 
         }
         $("#data_5 .input-daterange").datepicker({

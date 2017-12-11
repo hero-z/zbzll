@@ -55,7 +55,7 @@
                             @foreach($household as $k=>$v )
                                 <tr class="gradeA">
                                     <td>{{$v->community_name}}</td>
-                                    <td>{{$v->building_name.$v->unit_name}}</td>
+                                    <td>{{$v->address}}</td>
                                     <td>{{$v->room}}</td>
                                     <td>{{$v->name}}</td>
                                     <td>{{$v->phone}}</td>

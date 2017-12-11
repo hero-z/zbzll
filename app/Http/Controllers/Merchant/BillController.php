@@ -27,31 +27,30 @@ class BillController extends BaseController{
         $roomwhere=[];
         $room=$request->room;
         $unitwhere=[];
-        $residentwhere=[];
         if($room){
             $roomwhere[]=['room_infos.room','like','%'.$room."%"];
-            $unitwhere[]=['units.unit_name','like','%'.$room."%"];
-            $residentwhere[]=['residentinfos.name','like','%'.$room."%"];
+            $unitwhere[]=['room_infos.address','like','%'.$room."%"];
         }
         try{
             $merchant_id=CheckMerchantController::CheckMerchant(Auth::guard('merchant')->user()->id);
             $billInfo=DB::table("room_infos")
-                ->join('residentinfos',"room_infos.out_room_id","residentinfos.out_room_id")
-                ->join("units","room_infos.unit_id","=","units.id")
-                ->join("buildings","units.building_id","=","buildings.id")
-                ->join("communities","buildings.out_community_id","=","communities.out_community_id")
+                ->join("communities","room_infos.out_community_id","=","communities.out_community_id")
                 ->whereIn("communities.merchant_id",$merchant_id)
                 ->where($where)
                 ->where($roomwhere)
                 ->orwhere($unitwhere)
-                ->orwhere($residentwhere)
-                ->limit(8)
-                ->select( "communities.community_name","communities.out_community_id","communities.alipay_status","communities.basicservice_status","buildings.building_name","units.unit_name","room_infos.room","room_infos.out_room_id","residentinfos.name")
+                ->select( "communities.community_name","communities.out_community_id","communities.alipay_status","communities.basicservice_status","room_infos.address","room_infos.room","room_infos.out_room_id")
                 ->orderBy("communities.out_community_id")
-                ->orderBy("units.building_id")
                 ->orderBy("room_infos.unit_id")
                 ->orderBy("room_infos.room")
                 ->paginate(8);
+            $residentInfo=[];
+            if($billInfo){
+                foreach ($billInfo as $v){
+                $residentInfo[]=$v->out_room_id;
+                }
+                $residentInfo=Residentinfo::whereIn("out_room_id",$residentInfo)->pluck('name',"out_room_id")->toArray();
+            }
             $total=Bill::select( 'out_room_id',DB::raw('SUM(bill_entry_amount) as total'))->groupBy('out_room_id')->pluck('total',"out_room_id")->toArray();
             $success=Bill::where('bill_status',"TRADE_SUCCESS")->select('bill_entry_amount',DB::raw('SUM(bill_entry_amount) as success'))->groupBy('out_room_id')->pluck('success',"out_room_id")->toArray();
             $count=Bill::where('bill_status',"NONE")->select('id','out_room_id',DB::raw('count(id) as count'))->groupBy('out_room_id')->pluck('count',"out_room_id")->toArray();
@@ -59,7 +58,7 @@ class BillController extends BaseController{
             //小区信息
             $communityInfo=Community::whereIn('merchant_id',$merchant_id)->select('community_name','out_community_id')->get();
             return view ('merchant.bill.billinfo',compact('billInfo','communityInfo',
-                'out_community_id','room','total','success','count','expired_bill'));
+                'out_community_id','room','total','success','count','expired_bill','residentInfo'));
         }catch(\Exception $e){
             $error=$e->getMessage();
             $line=$e->getLine();
@@ -160,6 +159,12 @@ class BillController extends BaseController{
                         continue;
                     }
                     $community=Community::where("out_community_id", $data['out_community_id'])->first();
+                    if(!$community){
+                        return json_encode([
+                           "msg"=>'小区未上线,请先同步小区!' ,
+                            "success"=>0
+                        ]);
+                    }
                     $data['community_id']=$community->community_id;
                     $resident=Residentinfo::where('out_room_id',$v[1])->first();
                     $data['remark_str']=$resident->name;
@@ -302,6 +307,7 @@ class BillController extends BaseController{
                     ->where("units.id",$unit_id)
                     ->where("bill_status","NONE")
                     ->select("bills.out_room_id","bills.bill_entry_id","bills.cost_type","bills.bill_entry_amount","bills.acct_period","bills.release_day","bills.deadline","bills.remark_str")
+                    ->limit(999)
                     ->get();
                 if($bill_set->isEmpty()){
                     return json_encode([

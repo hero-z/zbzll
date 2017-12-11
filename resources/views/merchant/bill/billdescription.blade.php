@@ -171,7 +171,7 @@
             <div class="dataTables_paginate paging_simple_numbers"
                  id="DataTables_Table_0_paginate">
                 @if(isset($billInfo)&&!$billInfo->isEmpty())
-                    {{$billInfo->appends(compact('out_room_id',"roomInfo"))->render()}}
+                    {{$billInfo->appends(compact('out_room_id'))->render()}}
                 @endif
             </div>
         </div>

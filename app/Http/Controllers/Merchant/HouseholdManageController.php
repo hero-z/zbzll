@@ -37,14 +37,12 @@ class HouseholdManageController extends Controller
                 $merchant_id=CheckMerchantController::CheckMerchant(Auth::guard('merchant')->user()->id);
                 $household=DB::table('residentinfos')
                     ->join('room_infos','residentinfos.out_room_id','room_infos.out_room_id')
-                    ->join('units','room_infos.unit_id','units.id')
-                    ->join('buildings','units.building_id','buildings.id')
-                    ->join('communities','communities.out_community_id','buildings.out_community_id')
+                    ->join('communities','communities.out_community_id','room_infos.out_community_id')
                     ->whereIn("communities.merchant_id",$merchant_id)
                     ->where("residentinfos.type",1)
                     ->where($where)
                     ->orwhere($namewhere)
-                    ->select("communities.community_name",'residentinfos.id','residentinfos.name','residentinfos.out_room_id','residentinfos.phone',"buildings.building_name","units.unit_name","room_infos.room","residentinfos.remark","residentinfos.created_at")
+                    ->select("communities.community_name",'residentinfos.id','residentinfos.name','residentinfos.out_room_id','residentinfos.phone',"room_infos.address","room_infos.room","residentinfos.remark","residentinfos.created_at")
                     ->orderBy("residentinfos.created_at","DESC")
                     ->paginate(8);
                 //小区信息

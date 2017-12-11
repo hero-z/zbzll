@@ -25,30 +25,31 @@ class RoomInfoController extends BaseController{
         $roomwhere=[];
         $room=$request->room;
         $unitwhere=[];
-        $residentwhere=[];
         if($room){
             $roomwhere[]=['room_infos.room','like','%'.$room."%"];
-            $unitwhere[]=['units.unit_name','like','%'.$room."%"];
-            $residentwhere[]=['residentinfos.name','like','%'.$room."%"];
+            $unitwhere[]=['room_infos.address','like','%'.$room."%"];
         }
        try{
            $merchant_id=CheckMerchantController::CheckMerchant(Auth::guard('merchant')->user()->id);
            $roomInfo=DB::table("room_infos")
-               ->join("units","room_infos.unit_id","=","units.id")
-               ->join("buildings","units.building_id","=","buildings.id")
-               ->join('residentinfos','room_infos.out_room_id','=','residentinfos.out_room_id')
-               ->join("communities","buildings.out_community_id","=","communities.out_community_id")
+               ->join("communities","room_infos.out_community_id","=","communities.out_community_id")
                ->whereIn("communities.merchant_id",$merchant_id)
                ->where($where)
                ->where($roomwhere)
                ->orwhere($unitwhere)
-               ->orwhere($residentwhere)
-               ->select("communities.community_name","communities.alipay_status","communities.basicservice_status",'residentinfos.name','residentinfos.phone',"buildings.building_name","units.unit_name","room_infos.*")
+               ->select("communities.community_name","communities.alipay_status","communities.basicservice_status","room_infos.*")
                ->orderBy("room_infos.room")
                ->paginate(8);
+           $residentInfo=[];
+           if($roomInfo){
+               foreach ($roomInfo as $v){
+                   $residentInfo[]=$v->out_room_id;
+               }
+               $residentInfo=Residentinfo::whereIn("out_room_id",$residentInfo)->pluck('name',"out_room_id")->toArray();
+           }
             //小区信息
            $communityInfo=Community::whereIn('merchant_id',$merchant_id)->select('community_name','out_community_id')->get();
-           return view ('merchant.room.roominfo',compact('roomInfo','communityInfo','out_community_id','room'));
+           return view ('merchant.room.roominfo',compact('residentInfo','roomInfo','communityInfo','out_community_id','room'));
        }catch(\Exception $e){
            $error=$e->getMessage();
            $line=$e->getLine();
@@ -318,6 +319,7 @@ class RoomInfoController extends BaseController{
                     ->where("room_infos.status","NONE")
                     ->select("room_infos.out_room_id","communities.community_id","buildings.building_name as building","units.unit_name as unit","room_infos.room")
                     ->get()
+                    ->limit(199)
                     ->toArray();
                 if(empty($room_info_set)){
                     return json_encode([
