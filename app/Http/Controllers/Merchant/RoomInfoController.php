@@ -22,11 +22,9 @@ class RoomInfoController extends BaseController{
         if($out_community_id){
             $where[]=["communities.out_community_id",$out_community_id];
         }
-        $roomwhere=[];
         $room=$request->room;
         $unitwhere=[];
         if($room){
-            $roomwhere[]=['room_infos.room','like','%'.$room."%"];
             $unitwhere[]=['room_infos.address','like','%'.$room."%"];
         }
        try{
@@ -35,8 +33,7 @@ class RoomInfoController extends BaseController{
                ->join("communities","room_infos.out_community_id","=","communities.out_community_id")
                ->whereIn("communities.merchant_id",$merchant_id)
                ->where($where)
-               ->where($roomwhere)
-               ->orwhere($unitwhere)
+               ->where($unitwhere)
                ->select("communities.community_name","communities.alipay_status","communities.basicservice_status","room_infos.*")
                ->orderBy("room_infos.room")
                ->paginate(8);
@@ -318,8 +315,8 @@ class RoomInfoController extends BaseController{
                     ->where('units.id',$unit_id)
                     ->where("room_infos.status","NONE")
                     ->select("room_infos.out_room_id","communities.community_id","buildings.building_name as building","units.unit_name as unit","room_infos.room")
-                    ->get()
                     ->limit(199)
+                    ->get()
                     ->toArray();
                 if(empty($room_info_set)){
                     return json_encode([

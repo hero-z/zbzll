@@ -24,11 +24,9 @@ class BillController extends BaseController{
         if($out_community_id){
             $where[]=["communities.out_community_id",$out_community_id];
         }
-        $roomwhere=[];
         $room=$request->room;
         $unitwhere=[];
         if($room){
-            $roomwhere[]=['room_infos.room','like','%'.$room."%"];
             $unitwhere[]=['room_infos.address','like','%'.$room."%"];
         }
         try{
@@ -37,8 +35,8 @@ class BillController extends BaseController{
                 ->join("communities","room_infos.out_community_id","=","communities.out_community_id")
                 ->whereIn("communities.merchant_id",$merchant_id)
                 ->where($where)
-                ->where($roomwhere)
-                ->orwhere($unitwhere)
+                ->where($unitwhere)
+                ->limit(8)
                 ->select( "communities.community_name","communities.out_community_id","communities.alipay_status","communities.basicservice_status","room_infos.address","room_infos.room","room_infos.out_room_id")
                 ->orderBy("communities.out_community_id")
                 ->orderBy("room_infos.unit_id")
